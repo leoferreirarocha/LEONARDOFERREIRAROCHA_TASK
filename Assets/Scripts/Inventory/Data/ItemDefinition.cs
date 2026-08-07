@@ -51,7 +51,8 @@ namespace LeonardoTask.Inventory
         private bool equippable = true;
 
         [Tooltip(
-            "Maximum quantity that can occupy a single inventory slot."
+            "Maximum quantity that can occupy a single inventory slot. " +
+            "Equippable items are always limited to one item per slot."
         )]
         [SerializeField, Min(1)]
         private int maximumStackSize = 1;
@@ -97,6 +98,14 @@ namespace LeonardoTask.Inventory
                 1,
                 maximumStackSize
             );
+
+            // Equippable items represent unique active tools.
+            // Keeping them non-stackable simplifies equipment ownership
+            // and prevents ambiguous hand states.
+            if (equippable)
+            {
+                maximumStackSize = 1;
+            }
         }
     }
 }

@@ -385,6 +385,33 @@ namespace LeonardoTask.Inventory
 
             return capacity;
         }
+        /// <summary>
+        /// Returns the index of the first empty pocket slot,
+        /// or -1 when the inventory has no available empty slots.
+        /// </summary>
+        public int FindFirstEmptySlotIndex()
+        {
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i].IsEmpty)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Manually broadcasts that the inventory state has changed.
+        ///
+        /// This is used by higher-level runtime systems when multiple
+        /// slot operations must be completed as a single transaction.
+        /// </summary>
+        internal void NotifyChanged()
+        {
+            Changed?.Invoke();
+        }
 
         private bool AreDistinctValidIndices(
             int firstIndex,
