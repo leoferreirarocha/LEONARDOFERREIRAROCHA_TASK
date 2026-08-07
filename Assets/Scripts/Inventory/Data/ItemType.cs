@@ -1,16 +1,11 @@
-using UnityEngine;
-
-public class ItemType : MonoBehaviour
+namespace LeonardoTask.Inventory
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    /// <summary>
+    /// Defines the high-level gameplay category of an item.
+    /// </summary>
+    public enum ItemType
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Tool,
+        Key
     }
 }

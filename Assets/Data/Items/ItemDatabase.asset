@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3597acde01e3354ca63060509b7763d, type: 3}
+  m_Name: ItemDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Inventory.ItemDatabase
+  items:
+  - {fileID: 11400000, guid: 7614972daf4aed240b4cda028ce8ece7, type: 2}
+  - {fileID: 11400000, guid: 71721358f8e919a42a5f0b1c095b0e27, type: 2}
+  - {fileID: 11400000, guid: 910e65d5fbb912d4990172ce1db39077, type: 2}
