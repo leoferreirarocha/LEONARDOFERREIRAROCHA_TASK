@@ -130,6 +130,8 @@ GameObject:
   - component: {fileID: 73065544}
   - component: {fileID: 73065543}
   - component: {fileID: 73065542}
+  - component: {fileID: 73065546}
+  - component: {fileID: 73065545}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -151,8 +153,8 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_AngularDamping: 0
+  m_GravityScale: 3.6
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -160,10 +162,10 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
+  m_CollisionDetection: 1
+  m_Constraints: 4
 --- !u!61 &73065543
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -174,7 +176,7 @@ BoxCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 7351158b429a0634cb1ce9fda217c1af, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -224,8 +226,61 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 96065199}
+  - {fileID: 1999201637}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &73065545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 73065541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b999ed4a9d6bad4187ca6f0521ca473, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement2D
+  groundCheck: {fileID: 1999201637}
+  visualRoot: {fileID: 96065199}
+  walkSpeed: 7
+  runSpeed: 10
+  groundAcceleration: 85
+  groundDeceleration: 35
+  groundTurnAcceleration: 150
+  airAcceleration: 35
+  airDeceleration: 4
+  airTurnAcceleration: 55
+  jumpVelocity: 15
+  jumpCutMultiplier: 0.45
+  coyoteTime: 0.12
+  jumpBufferTime: 0.12
+  baseGravityScale: 3.3
+  fallGravityMultiplier: 2
+  apexGravityMultiplier: 0.5
+  apexVelocityThreshold: 1.4
+  maximumFallSpeed: 22
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  groundCheckSize: {x: 0.55, y: 0.12}
+  groundedVerticalTolerance: 0.5
+  inputDeadZone: 0.1
+--- !u!114 &73065546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 73065541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93f848b564a70444ea691d316d02f4a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Player.PlayerInputReader
+  moveAction: {fileID: -1680190386980627800, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  jumpAction: {fileID: -2099379676528639254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  runAction: {fileID: -7471211009204490832, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!1 &96065198
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,7 +604,7 @@ GameObject:
   - component: {fileID: 1120222904}
   - component: {fileID: 1120222903}
   - component: {fileID: 1120222902}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -675,6 +730,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1999201636
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1999201637}
+  m_Layer: 0
+  m_Name: GroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1999201637
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999201636}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.501, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 73065544}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
