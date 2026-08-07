@@ -8,8 +8,8 @@ namespace LeonardoTask.Inventory
     /// inventory and equipment systems.
     ///
     /// This component owns the runtime pocket and equipment models
-    /// and exposes inventory operations to gameplay, UI, and
-    /// persistence systems.
+    /// and exposes inventory operations to gameplay, UI, persistence,
+    /// and other runtime systems.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class InventoryController : MonoBehaviour
@@ -273,7 +273,6 @@ namespace LeonardoTask.Inventory
 
             equipment.ClearHandItemWithoutNotification();
 
-            // Notify only after the complete transaction finishes.
             pocket.NotifyChanged();
             equipment.NotifyChanged();
 
@@ -287,6 +286,83 @@ namespace LeonardoTask.Inventory
         public bool IsEquipped(ItemDefinition item)
         {
             return equipment.IsEquipped(item);
+        }
+
+        /// <summary>
+        /// Restores the complete pocket and hand state in a single operation.
+        ///
+        /// This method is intended for persistence systems. Runtime listeners
+        /// are notified only after the complete state has been restored.
+        /// </summary>
+        public void RestoreState(
+            ItemDefinition[] pocketItems,
+            int[] pocketQuantities,
+            ItemDefinition handItem
+        )
+        {
+            if (pocketItems == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(pocketItems)
+                );
+            }
+
+            if (pocketQuantities == null)
+            {
+                throw new ArgumentNullException(
+                    nameof(pocketQuantities)
+                );
+            }
+
+            if (pocketItems.Length != PocketSlotCount ||
+                pocketQuantities.Length != PocketSlotCount)
+            {
+                throw new ArgumentException(
+                    "Restored inventory state must match the configured pocket slot count."
+                );
+            }
+
+            if (handItem != null &&
+                !handItem.IsEquippable)
+            {
+                Debug.LogWarning(
+                    $"Cannot restore '{handItem.DisplayName}' to the hand because the item is not equippable.",
+                    this
+                );
+
+                handItem = null;
+            }
+
+            pocket.ClearWithoutNotification();
+
+            for (int i = 0; i < PocketSlotCount; i++)
+            {
+                ItemDefinition item =
+                    pocketItems[i];
+
+                int quantity =
+                    pocketQuantities[i];
+
+                if (item == null ||
+                    quantity <= 0)
+                {
+                    continue;
+                }
+
+                pocket.SetSlotWithoutNotification(
+                    i,
+                    item,
+                    quantity
+                );
+            }
+
+            equipment.SetHandItemWithoutNotification(
+                handItem
+            );
+
+            // Notify listeners only after the full state has been restored.
+            pocket.NotifyChanged();
+            equipment.NotifyChanged();
         }
 
         private void InitializeInventory()

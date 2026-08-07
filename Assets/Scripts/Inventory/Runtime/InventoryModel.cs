@@ -15,7 +15,7 @@ namespace LeonardoTask.Inventory
 
         /// <summary>
         /// Raised whenever the inventory contents change successfully.
-        /// UI and persistence systems can subscribe to this event later.
+        /// UI and persistence systems can subscribe to this event.
         /// </summary>
         public event Action Changed;
 
@@ -385,6 +385,7 @@ namespace LeonardoTask.Inventory
 
             return capacity;
         }
+
         /// <summary>
         /// Returns the index of the first empty pocket slot,
         /// or -1 when the inventory has no available empty slots.
@@ -403,10 +404,42 @@ namespace LeonardoTask.Inventory
         }
 
         /// <summary>
+        /// Clears every pocket slot without broadcasting a state change.
+        ///
+        /// This is used while restoring a complete saved state so
+        /// listeners never observe a partially loaded inventory.
+        /// </summary>
+        internal void ClearWithoutNotification()
+        {
+            foreach (InventorySlot slot in slots)
+            {
+                slot.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Restores a specific pocket slot without broadcasting
+        /// an individual state change.
+        /// </summary>
+        internal void SetSlotWithoutNotification(
+            int index,
+            ItemDefinition item,
+            int quantity
+        )
+        {
+            ValidateSlotIndex(index);
+
+            slots[index].Set(
+                item,
+                quantity
+            );
+        }
+
+        /// <summary>
         /// Manually broadcasts that the inventory state has changed.
         ///
-        /// This is used by higher-level runtime systems when multiple
-        /// slot operations must be completed as a single transaction.
+        /// Higher-level systems use this after completing an atomic
+        /// transaction or restoring a complete saved state.
         /// </summary>
         internal void NotifyChanged()
         {
