@@ -15,7 +15,7 @@ MonoBehaviour:
   id: trumpet
   displayName: Trumpet
   description: A surprisingly loud trumpet capable of waking even the deepest sleeper.
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c3357b21d60271245b5c2de595f9c014, type: 3}
   itemType: 0
   equippable: 1
   maximumStackSize: 1
