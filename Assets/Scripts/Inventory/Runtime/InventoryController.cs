@@ -278,7 +278,50 @@ namespace LeonardoTask.Inventory
 
             return true;
         }
+        /// <summary>
+        /// Attempts to move the currently equipped hand item into a specific
+        /// pocket slot.
+        ///
+        /// Empty target slots receive the equipped item directly. Occupied
+        /// equippable slots exchange their item with the current hand item.
+        /// </summary>
+        public bool TryMoveHandToPocket(
+            int targetIndex
+        )
+        {
+            if (!IsValidPocketIndex(targetIndex) ||
+                !equipment.HasHandItem)
+            {
+                return false;
+            }
 
+            InventorySlot targetSlot =
+                pocket.GetSlot(targetIndex);
+
+            // When the target slot already contains an item, reuse the
+            // existing pocket-to-hand equipment transaction.
+            if (!targetSlot.IsEmpty)
+            {
+                return TryEquipFromPocket(
+                    targetIndex
+                );
+            }
+
+            ItemDefinition equippedItem =
+                equipment.HandItem;
+
+            targetSlot.Set(
+                equippedItem,
+                1
+            );
+
+            equipment.ClearHandItemWithoutNotification();
+
+            pocket.NotifyChanged();
+            equipment.NotifyChanged();
+
+            return true;
+        }
         /// <summary>
         /// Determines whether the provided item is currently
         /// equipped in the player's hand.
