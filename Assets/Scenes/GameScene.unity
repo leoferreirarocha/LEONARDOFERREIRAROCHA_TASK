@@ -7218,6 +7218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 836169976}
   - component: {fileID: 836169977}
+  - component: {fileID: 836169978}
   m_Layer: 0
   m_Name: InventorySystem
   m_TagString: Untagged
@@ -7253,6 +7254,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Inventory.InventoryController
   pocketSlotCount: 6
+--- !u!114 &836169978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836169975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa802bb0bd7c6e34da9f3d9b3e26cdd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Inventory.InventoryInputReader
+  quickSlotActions:
+  - {fileID: 6417681494605822950, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  - {fileID: -2222053341343871120, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  - {fileID: -1035282324621181139, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  - {fileID: 6615759692006901197, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  - {fileID: 8288894696341497784, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  - {fileID: 2496929366845304254, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!1 &861854109
 GameObject:
   m_ObjectHideFlags: 0
@@ -92548,6 +92568,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Inventory.UI.InventoryHUD
   inventory: {fileID: 836169977}
+  input: {fileID: 836169978}
   pocketSlots:
   - {fileID: 55407162}
   - {fileID: 341660623}

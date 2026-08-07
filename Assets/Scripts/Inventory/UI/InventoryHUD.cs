@@ -25,6 +25,9 @@ namespace LeonardoTask.Inventory.UI
         [SerializeField]
         private InventoryController inventory;
 
+        [SerializeField]
+        private InventoryInputReader input;
+
         [Header("Slot Views")]
 
         [SerializeField]
@@ -57,19 +60,57 @@ namespace LeonardoTask.Inventory.UI
         private InventorySlotView dragSource;
 
         private bool isDragging;
-
-        private void OnEnable()
+        /// <summary>
+        /// Selects the pocket slot associated with a keyboard quick-slot input.
+        /// </summary>
+        private void HandleQuickSlotPressed(
+            int pocketIndex
+        )
         {
-            if (inventory == null)
+            if (pocketIndex < 0 ||
+                pocketIndex >= inventory.PocketSlotCount)
             {
                 return;
             }
 
-            inventory.InventoryChanged +=
-                HandleInventoryChanged;
+            InventorySlot slot =
+                inventory.GetPocketSlot(
+                    pocketIndex
+                );
 
-            inventory.EquipmentChanged +=
-                HandleInventoryChanged;
+            // Empty slots clear the current selection instead of
+            // displaying stale details from a previously selected item.
+            if (slot.IsEmpty)
+            {
+                ClearSelection();
+                return;
+            }
+
+            selectionType =
+                SelectionType.Pocket;
+
+            selectedPocketIndex =
+                pocketIndex;
+
+            RefreshAll();
+        }
+
+        private void OnEnable()
+        {
+            if (inventory != null)
+            {
+                inventory.InventoryChanged +=
+                    HandleInventoryChanged;
+
+                inventory.EquipmentChanged +=
+                    HandleInventoryChanged;
+            }
+
+            if (input != null)
+            {
+                input.QuickSlotPressed +=
+                    HandleQuickSlotPressed;
+            }
         }
 
         private void Start()
@@ -80,16 +121,20 @@ namespace LeonardoTask.Inventory.UI
 
         private void OnDisable()
         {
-            if (inventory == null)
+            if (inventory != null)
             {
-                return;
+                inventory.InventoryChanged -=
+                    HandleInventoryChanged;
+
+                inventory.EquipmentChanged -=
+                    HandleInventoryChanged;
             }
 
-            inventory.InventoryChanged -=
-                HandleInventoryChanged;
-
-            inventory.EquipmentChanged -=
-                HandleInventoryChanged;
+            if (input != null)
+            {
+                input.QuickSlotPressed -=
+                    HandleQuickSlotPressed;
+            }
         }
 
         /// <summary>
