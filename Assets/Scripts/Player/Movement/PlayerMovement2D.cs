@@ -150,6 +150,7 @@ namespace LeonardoTask.Player
         private bool jumpCutRequested;
         private bool isGrounded;
         private bool facingRight = true;
+        private bool movementEnabled = true;
 
         /// <summary>
         /// Gets whether the player is currently standing on valid ground.
@@ -204,6 +205,11 @@ namespace LeonardoTask.Player
 
         private void Update()
         {
+            if (!movementEnabled)
+            {
+                return;
+            }
+
             ReadMovementInput();
             UpdateJumpInput();
             UpdateFacingDirection();
@@ -211,6 +217,14 @@ namespace LeonardoTask.Player
 
         private void FixedUpdate()
         {
+            if (!movementEnabled)
+            {
+                body.linearVelocity =
+                    Vector2.zero;
+
+                return;
+            }
+
             UpdateGroundedState();
             UpdateCoyoteTimer();
 
@@ -304,7 +318,54 @@ namespace LeonardoTask.Player
                 hasGroundBelow &&
                 isNotMovingUpward;
         }
+        /// <summary>
+        /// Gets whether player locomotion is currently enabled.
+        /// </summary>
+        public bool MovementEnabled =>
+            movementEnabled;
 
+        /// <summary>
+        /// Enables or disables player locomotion.
+        ///
+        /// Dialogue uses this to temporarily freeze the character while
+        /// preserving the current gameplay and scene state.
+        /// </summary>
+        public void SetMovementEnabled(
+            bool enabled
+        )
+        {
+            if (movementEnabled == enabled)
+            {
+                return;
+            }
+
+            movementEnabled =
+                enabled;
+
+            horizontalInput = 0f;
+            runHeld = false;
+            jumpBufferCounter = 0f;
+            jumpCutRequested = false;
+
+            if (body == null)
+            {
+                return;
+            }
+
+            if (!movementEnabled)
+            {
+                body.linearVelocity =
+                    Vector2.zero;
+
+                body.gravityScale =
+                    0f;
+
+                return;
+            }
+
+            body.gravityScale =
+                baseGravityScale;
+        }
         /// <summary>
         /// Maintains a short jump window after the player leaves the ground.
         /// </summary>

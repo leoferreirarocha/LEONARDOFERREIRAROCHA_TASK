@@ -29,22 +29,16 @@ namespace LeonardoTask.Interaction
 
         private bool interactionEnabled = true;
 
+        private bool inputCallbackRegistered;
+
         private void OnEnable()
         {
-            if (input != null)
-            {
-                input.InteractPressed +=
-                    HandleInteractPressed;
-            }
+            RegisterInputCallback();
         }
 
         private void OnDisable()
         {
-            if (input != null)
-            {
-                input.InteractPressed -=
-                    HandleInteractPressed;
-            }
+            UnregisterInputCallback();
 
             promptUI?.Hide();
         }
@@ -89,23 +83,35 @@ namespace LeonardoTask.Interaction
         }
 
         /// <summary>
-        /// Enables or disables world interaction without removing
-        /// registered proximity candidates.
+        /// Enables or disables world interaction.
         ///
-        /// Dialogue uses this to temporarily lock interaction input.
+        /// Disabling interaction also releases ownership of the Interact input,
+        /// allowing modal systems such as dialogue to use the same action safely.
         /// </summary>
         public void SetInteractionEnabled(
             bool enabled
         )
         {
+            if (interactionEnabled == enabled)
+            {
+                return;
+            }
+
             interactionEnabled =
                 enabled;
 
             if (!interactionEnabled)
             {
+                UnregisterInputCallback();
+
+                currentInteractable = null;
+
                 promptUI?.Hide();
+
                 return;
             }
+
+            RegisterInputCallback();
 
             RefreshInteraction();
         }
@@ -223,6 +229,41 @@ namespace LeonardoTask.Interaction
                     nearbyInteractables.RemoveAt(i);
                 }
             }
+        }
+        /// <summary>
+        /// Registers the interaction input callback when world interaction
+        /// is currently enabled.
+        /// </summary>
+        private void RegisterInputCallback()
+        {
+            if (input == null ||
+                inputCallbackRegistered ||
+                !interactionEnabled)
+            {
+                return;
+            }
+
+            input.InteractPressed +=
+                HandleInteractPressed;
+
+            inputCallbackRegistered = true;
+        }
+
+        /// <summary>
+        /// Removes the world interaction input callback.
+        /// </summary>
+        private void UnregisterInputCallback()
+        {
+            if (input == null ||
+                !inputCallbackRegistered)
+            {
+                return;
+            }
+
+            input.InteractPressed -=
+                HandleInteractPressed;
+
+            inputCallbackRegistered = false;
         }
     }
 }
