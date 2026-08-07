@@ -8315,7 +8315,6 @@ GameObject:
   m_Component:
   - component: {fileID: 836169976}
   - component: {fileID: 836169977}
-  - component: {fileID: 836169978}
   m_Layer: 0
   m_Name: InventorySystem
   m_TagString: Untagged
@@ -8351,22 +8350,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Inventory.InventoryController
   pocketSlotCount: 6
---- !u!114 &836169978
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 836169975}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ff7d35259426184cb1552147a112047, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Inventory.InventoryHUDDebugSeeder
-  inventory: {fileID: 836169977}
-  trumpet: {fileID: 11400000, guid: 7614972daf4aed240b4cda028ce8ece7, type: 2}
-  wand: {fileID: 11400000, guid: 71721358f8e919a42a5f0b1c095b0e27, type: 2}
-  castleKey: {fileID: 11400000, guid: 910e65d5fbb912d4990172ce1db39077, type: 2}
 --- !u!1 &846178007
 GameObject:
   m_ObjectHideFlags: 0
