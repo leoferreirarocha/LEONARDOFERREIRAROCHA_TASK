@@ -82,7 +82,6 @@ namespace LeonardoTask.Dialogue
         /// of the Interact input from world interaction to dialogue.
         /// </summary>
         public bool BeginDialogue(
-            string speakerName,
             DialogueLine[] lines,
             DialogueVisualVariantSwitcher visualSwitcher,
             Action onCompleted
@@ -123,12 +122,6 @@ namespace LeonardoTask.Dialogue
             // so dialogue can safely own the same action.
             input.InteractPressed +=
                 HandleInteractPressed;
-
-            if (speakerNameText != null)
-            {
-                speakerNameText.text =
-                    speakerName;
-            }
 
             if (continueHintText != null)
             {
@@ -174,6 +167,12 @@ namespace LeonardoTask.Dialogue
         {
             DialogueLine line =
                 activeLines[currentLineIndex];
+
+            if (speakerNameText != null)
+            {
+                speakerNameText.text =
+                    line.SpeakerName;
+            }
 
             if (dialogueText != null)
             {

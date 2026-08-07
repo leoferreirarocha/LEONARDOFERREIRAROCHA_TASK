@@ -2654,8 +2654,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 34
+  m_fontSizeBase: 34
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -3787,8 +3787,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: -0.000005722, y: -22.499985}
+  m_SizeDelta: {x: 180, y: 45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &480670460
 MonoBehaviour:
@@ -3820,7 +3820,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -3843,9 +3843,9 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -3876,7 +3876,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 0, w: 0.000000006615162}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -4212,7 +4212,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 2.31
+  m_Radius: 1.97
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -60035,16 +60035,6 @@ Tilemap:
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
       m_AllTileFlags: 1073741825
-  - first: {x: 37, y: 20, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
-      m_TileMatrixIndex: 0
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
   - first: {x: 43, y: 20, z: 0}
     second:
       serializedVersion: 2
@@ -67161,16 +67151,6 @@ Tilemap:
       m_TileIndex: 17
       m_TileSpriteIndex: 17
       m_TileMatrixIndex: 1
-      m_TileColorIndex: 0
-      m_TileObjectToInstantiateIndex: 65535
-      dummyAlignment: 0
-      m_AllTileFlags: 1073741825
-  - first: {x: 36, y: 26, z: 0}
-    second:
-      serializedVersion: 2
-      m_TileIndex: 0
-      m_TileSpriteIndex: 0
-      m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
       dummyAlignment: 0
@@ -84437,7 +84417,7 @@ Tilemap:
       m_AllTileFlags: 1073741825
   m_AnimatedTiles: {}
   m_TileAssetArray:
-  - m_RefCount: 180
+  - m_RefCount: 178
     m_Data: {fileID: -3947565869730374912, guid: 381574d264e8af3489c228983ec3757d, type: 3}
   - m_RefCount: 225
     m_Data: {fileID: 1397477780243846677, guid: 381574d264e8af3489c228983ec3757d, type: 3}
@@ -84576,7 +84556,7 @@ Tilemap:
   - m_RefCount: 14
     m_Data: {fileID: 8971701402562544220, guid: 381574d264e8af3489c228983ec3757d, type: 3}
   m_TileSpriteArray:
-  - m_RefCount: 180
+  - m_RefCount: 178
     m_Data: {fileID: 1799705584, guid: 4f1cd185a8461e94581bd9d381ad4be5, type: 3}
   - m_RefCount: 225
     m_Data: {fileID: -517018548, guid: 4f1cd185a8461e94581bd9d381ad4be5, type: 3}
@@ -84715,7 +84695,7 @@ Tilemap:
   - m_RefCount: 14
     m_Data: {fileID: 1274740218, guid: 4f1cd185a8461e94581bd9d381ad4be5, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 6943
+  - m_RefCount: 6941
     m_Data:
       e00: 1
       e01: 0
@@ -84824,7 +84804,7 @@ Tilemap:
       e32: 9.5e-43
       e33: 9.47e-43
   m_TileColorArray:
-  - m_RefCount: 7637
+  - m_RefCount: 7635
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
@@ -85461,9 +85441,9 @@ CompositeCollider2D:
         Y: 170000000
     - - X: 380000000
         Y: 270000000
-      - X: 360000000
+      - X: 370000000
         Y: 270000000
-      - X: 360000000
+      - X: 370000000
         Y: 260000000
       - X: 380000000
         Y: 260000000
@@ -85515,13 +85495,13 @@ CompositeCollider2D:
         Y: 180000000
       - X: 550000000
         Y: 180000000
-    - - X: 380000000
+    - - X: 370000000
         Y: 210000000
       - X: 360000000
         Y: 210000000
       - X: 360000000
         Y: 200000000
-      - X: 380000000
+      - X: 370000000
         Y: 200000000
     - - X: 340000000
         Y: 180000000
@@ -85872,8 +85852,8 @@ CompositeCollider2D:
       - {x: 43.00003, y: 17}
     - - {x: 37.999973, y: 26}
       - {x: 37.999973, y: 27}
-      - {x: 36, y: 26.999971}
-      - {x: 36.00003, y: 26}
+      - {x: 37, y: 26.999971}
+      - {x: 37.00003, y: 26}
     - - {x: 60.99997, y: 25}
       - {x: 60.99997, y: 26}
       - {x: 53, y: 25.999971}
@@ -85892,8 +85872,8 @@ CompositeCollider2D:
       - {x: 63.750004, y: 20.000029}
       - {x: 63.750004, y: 21.000006}
       - {x: 64, y: 21.562304}
-    - - {x: 37.999973, y: 20}
-      - {x: 37.999973, y: 21}
+    - - {x: 36.999973, y: 20}
+      - {x: 36.999973, y: 21}
       - {x: 36, y: 20.999971}
       - {x: 36.00003, y: 20}
     - - {x: 54.99997, y: 18}
@@ -87765,13 +87745,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 19
-  m_fontSizeBase: 19
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -87927,15 +87907,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Dialogue.NPCDialogueInteractable
   interactionLabel: Interact
   dialogueController: {fileID: 28419648}
-  speakerName: Frog
   lines:
-  - text: ...
+  - speakerName: Player
+    text: Hey!
     visualVariantIndex: 0
-  - text: Zzz...
+  - speakerName: Frog
+    text: ...
     visualVariantIndex: 0
-  - text: Mmm... five more minutes.
+  - speakerName: Player
+    text: 'Heeeey!!!
+
+'
+    visualVariantIndex: 0
+  - speakerName: Frog
+    text: Zzz...
+    visualVariantIndex: 0
+  - speakerName: Frog
+    text: Mmm... five more minutes.
     visualVariantIndex: 1
-  - text: '...
+  - speakerName: Frog
+    text: '...
+
+'
+    visualVariantIndex: 0
+  - speakerName: Player
+    text: 'Hmm... maybe I have something at home that could wake him up.
 
 '
     visualVariantIndex: 0

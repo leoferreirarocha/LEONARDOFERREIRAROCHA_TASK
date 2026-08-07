@@ -16,9 +16,6 @@ namespace LeonardoTask.Dialogue
         private DialogueController dialogueController;
 
         [SerializeField]
-        private string speakerName = "NPC";
-
-        [SerializeField]
         private DialogueLine[] lines;
 
         [Header("Optional Visual Switching")]
@@ -48,7 +45,6 @@ namespace LeonardoTask.Dialogue
             }
 
             dialogueController.BeginDialogue(
-                speakerName,
                 lines,
                 visualSwitcher,
                 HandleDialogueCompleted
