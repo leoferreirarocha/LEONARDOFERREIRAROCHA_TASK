@@ -15,7 +15,7 @@ MonoBehaviour:
   id: wand
   displayName: Wand
   description: A magical wand capable of launching small energy projectiles.
-  icon: {fileID: 21300000, guid: 1012729834d7fd445b2098747d132355, type: 3}
+  icon: {fileID: -2959081937962360884, guid: 1012729834d7fd445b2098747d132355, type: 3}
   itemType: 0
   equippable: 1
   maximumStackSize: 1
