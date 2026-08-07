@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,13 +7,15 @@ namespace LeonardoTask.Player
     /// <summary>
     /// Centralizes player input reading through the Unity Input System.
     ///
-    /// This component does not control player movement. It translates
-    /// Input Actions into values that other gameplay systems can consume.
+    /// This component does not control player behavior directly.
+    /// It translates Input Actions into values and events that other
+    /// gameplay systems can consume.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class PlayerInputReader : MonoBehaviour
     {
         [Header("Input Actions")]
+
         [SerializeField]
         private InputActionReference moveAction;
 
@@ -22,9 +25,20 @@ namespace LeonardoTask.Player
         [SerializeField]
         private InputActionReference runAction;
 
+        [SerializeField]
+        private InputActionReference interactAction;
+
         private bool moveEnabledByThisComponent;
         private bool jumpEnabledByThisComponent;
         private bool runEnabledByThisComponent;
+        private bool interactEnabledByThisComponent;
+
+        private bool interactCallbackRegistered;
+
+        /// <summary>
+        /// Raised when the player performs the interaction action.
+        /// </summary>
+        public event Action InteractPressed;
 
         /// <summary>
         /// Gets the current movement direction.
@@ -34,8 +48,7 @@ namespace LeonardoTask.Player
         ///  0 represents no horizontal input.
         ///  1 represents right.
         ///
-        /// The vertical axis remains available for future actions,
-        /// such as dropping through one-way platforms.
+        /// The vertical axis remains available for future actions.
         /// </summary>
         public Vector2 Move
         {
@@ -94,10 +107,19 @@ namespace LeonardoTask.Player
                 runAction,
                 ref runEnabledByThisComponent
             );
+
+            EnableActionIfNecessary(
+                interactAction,
+                ref interactEnabledByThisComponent
+            );
+
+            RegisterInteractCallback();
         }
 
         private void OnDisable()
         {
+            UnregisterInteractCallback();
+
             DisableActionIfOwned(
                 moveAction,
                 moveEnabledByThisComponent
@@ -112,6 +134,46 @@ namespace LeonardoTask.Player
                 runAction,
                 runEnabledByThisComponent
             );
+
+            DisableActionIfOwned(
+                interactAction,
+                interactEnabledByThisComponent
+            );
+        }
+
+        private void RegisterInteractCallback()
+        {
+            if (!HasValidAction(interactAction) ||
+                interactCallbackRegistered)
+            {
+                return;
+            }
+
+            interactAction.action.performed +=
+                HandleInteractPerformed;
+
+            interactCallbackRegistered = true;
+        }
+
+        private void UnregisterInteractCallback()
+        {
+            if (!HasValidAction(interactAction) ||
+                !interactCallbackRegistered)
+            {
+                return;
+            }
+
+            interactAction.action.performed -=
+                HandleInteractPerformed;
+
+            interactCallbackRegistered = false;
+        }
+
+        private void HandleInteractPerformed(
+            InputAction.CallbackContext context
+        )
+        {
+            InteractPressed?.Invoke();
         }
 
         private static bool HasValidAction(
@@ -146,6 +208,7 @@ namespace LeonardoTask.Player
             }
 
             actionReference.action.Enable();
+
             enabledByThisComponent = true;
         }
 
@@ -157,12 +220,8 @@ namespace LeonardoTask.Player
             bool enabledByThisComponent
         )
         {
-            if (!enabledByThisComponent)
-            {
-                return;
-            }
-
-            if (!HasValidAction(actionReference))
+            if (!enabledByThisComponent ||
+                !HasValidAction(actionReference))
             {
                 return;
             }
