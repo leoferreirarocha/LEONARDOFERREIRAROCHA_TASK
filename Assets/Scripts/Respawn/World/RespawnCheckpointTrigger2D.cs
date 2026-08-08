@@ -1,12 +1,11 @@
+using LeonardoTask.Progress;
 using UnityEngine;
 
 namespace LeonardoTask.Respawn
 {
     /// <summary>
-    /// Updates the player's current respawn location when entered.
-    ///
-    /// The checkpoint only needs to activate once during the current
-    /// gameplay session.
+    /// Updates the player's active respawn point and records the
+    /// encounter checkpoint in persistent game progression.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Collider2D))]
@@ -15,11 +14,11 @@ namespace LeonardoTask.Respawn
     {
         [Header("Checkpoint")]
 
-        [Tooltip(
-            "Exact world position used by future player respawns."
-        )]
         [SerializeField]
         private Transform checkpointPoint;
+
+        [SerializeField]
+        private GameProgressController progress;
 
         private Collider2D triggerCollider;
         private bool activated;
@@ -36,6 +35,18 @@ namespace LeonardoTask.Respawn
             {
                 checkpointPoint =
                     transform;
+            }
+        }
+
+        private void Start()
+        {
+            if (progress != null &&
+                progress.EnemyCheckpointReached)
+            {
+                activated = true;
+
+                triggerCollider.enabled =
+                    false;
             }
         }
 
@@ -57,12 +68,13 @@ namespace LeonardoTask.Respawn
                 return;
             }
 
-            activated =
-                true;
+            activated = true;
 
             player.SetRespawnPoint(
                 checkpointPoint
             );
+
+            progress?.MarkEnemyCheckpointReached();
 
             triggerCollider.enabled =
                 false;

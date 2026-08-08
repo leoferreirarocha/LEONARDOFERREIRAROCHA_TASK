@@ -2,17 +2,15 @@ using System.Collections;
 using LeonardoTask.CameraSystem;
 using LeonardoTask.Interaction;
 using LeonardoTask.Player;
+using LeonardoTask.Progress;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace LeonardoTask.Respawn
 {
     /// <summary>
-    /// Coordinates player death and local respawning without reloading
-    /// the current scene.
-    ///
-    /// Inventory and persistent world progression remain untouched
-    /// because only the player's physical state and position are reset.
+    /// Coordinates player death, persistent checkpoint restoration,
+    /// and local respawning without reloading the scene.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody2D))]
@@ -27,18 +25,22 @@ namespace LeonardoTask.Respawn
         [SerializeField]
         private PlayerInteractor2D interactor;
 
-        [Tooltip(
-            "Visual child rotated during the death presentation. " +
-            "Do not assign the Player root."
-        )]
         [SerializeField]
         private Transform visualRoot;
 
-        [Header("Respawn")]
+        [Header("Progress")]
+
+        [SerializeField]
+        private GameProgressController progress;
+
+        [Header("Respawn Points")]
 
         [FormerlySerializedAs("respawnPoint")]
         [SerializeField]
         private Transform initialRespawnPoint;
+
+        [SerializeField]
+        private Transform enemyCheckpointPoint;
 
         [SerializeField]
         private PlayerCameraFollow2D cameraFollow;
@@ -104,8 +106,32 @@ namespace LeonardoTask.Respawn
 
             if (!ValidateReferences())
             {
-                enabled =
-                    false;
+                enabled = false;
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (progress != null)
+            {
+                progress.StateRestored +=
+                    HandleProgressStateRestored;
+            }
+        }
+
+        private void Start()
+        {
+            // This also covers cases where save restoration occurred
+            // before this component reached Start.
+            ApplyPersistentRespawnState();
+        }
+
+        private void OnDisable()
+        {
+            if (progress != null)
+            {
+                progress.StateRestored -=
+                    HandleProgressStateRestored;
             }
         }
 
@@ -126,7 +152,7 @@ namespace LeonardoTask.Respawn
         }
 
         /// <summary>
-        /// Changes the position used by future deaths in the current session.
+        /// Changes the active respawn point for the current runtime session.
         /// </summary>
         public void SetRespawnPoint(
             Transform newRespawnPoint
@@ -143,11 +169,9 @@ namespace LeonardoTask.Respawn
 
         private IEnumerator DeathSequence()
         {
-            isDead =
-                true;
+            isDead = true;
 
             LockPlayer();
-
             ApplyDeathVisual();
 
             yield return StartCoroutine(
@@ -176,8 +200,42 @@ namespace LeonardoTask.Respawn
 
             ReleasePlayer();
 
-            isDead =
-                false;
+            isDead = false;
+        }
+
+        private void HandleProgressStateRestored()
+        {
+            ApplyPersistentRespawnState();
+        }
+
+        /// <summary>
+        /// Reconstructs the active respawn location from persistent progress.
+        ///
+        /// Loading a save that has reached the enemy checkpoint also
+        /// places the player directly at that checkpoint.
+        /// </summary>
+        private void ApplyPersistentRespawnState()
+        {
+            if (progress == null ||
+                !progress.EnemyCheckpointReached)
+            {
+                currentRespawnPoint =
+                    initialRespawnPoint;
+
+                return;
+            }
+
+            if (enemyCheckpointPoint == null)
+            {
+                return;
+            }
+
+            currentRespawnPoint =
+                enemyCheckpointPoint;
+
+            PlacePlayerAt(
+                enemyCheckpointPoint
+            );
         }
 
         private void LockPlayer()
@@ -210,6 +268,28 @@ namespace LeonardoTask.Respawn
 
         private void Respawn()
         {
+            Transform targetPoint =
+                currentRespawnPoint != null
+                    ? currentRespawnPoint
+                    : initialRespawnPoint;
+
+            PlacePlayerAt(
+                targetPoint
+            );
+        }
+
+        /// <summary>
+        /// Immediately places the player at a world-space respawn point.
+        /// </summary>
+        private void PlacePlayerAt(
+            Transform targetPoint
+        )
+        {
+            if (targetPoint == null)
+            {
+                return;
+            }
+
             interactor.ClearNearbyInteractables();
 
             body.linearVelocity =
@@ -217,11 +297,6 @@ namespace LeonardoTask.Respawn
 
             body.angularVelocity =
                 0f;
-
-            Transform targetPoint =
-                currentRespawnPoint != null
-                    ? currentRespawnPoint
-                    : initialRespawnPoint;
 
             body.position =
                 targetPoint.position;
@@ -248,29 +323,26 @@ namespace LeonardoTask.Respawn
 
         private bool ValidateReferences()
         {
-            bool valid =
-                true;
+            bool valid = true;
 
             if (movement == null)
             {
                 Debug.LogError(
-                    $"{nameof(PlayerRespawnController)} on '{name}' requires a PlayerMovement2D reference.",
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires PlayerMovement2D.",
                     this
                 );
 
-                valid =
-                    false;
+                valid = false;
             }
 
             if (interactor == null)
             {
                 Debug.LogError(
-                    $"{nameof(PlayerRespawnController)} on '{name}' requires a PlayerInteractor2D reference.",
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires PlayerInteractor2D.",
                     this
                 );
 
-                valid =
-                    false;
+                valid = false;
             }
 
             if (visualRoot == null)
@@ -280,8 +352,17 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid =
-                    false;
+                valid = false;
+            }
+
+            if (progress == null)
+            {
+                Debug.LogError(
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires GameProgressController.",
+                    this
+                );
+
+                valid = false;
             }
 
             if (initialRespawnPoint == null)
@@ -291,30 +372,37 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid =
-                    false;
+                valid = false;
+            }
+
+            if (enemyCheckpointPoint == null)
+            {
+                Debug.LogError(
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires an enemy checkpoint point.",
+                    this
+                );
+
+                valid = false;
             }
 
             if (cameraFollow == null)
             {
                 Debug.LogError(
-                    $"{nameof(PlayerRespawnController)} on '{name}' requires a PlayerCameraFollow2D reference.",
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires PlayerCameraFollow2D.",
                     this
                 );
 
-                valid =
-                    false;
+                valid = false;
             }
 
             if (screenFade == null)
             {
                 Debug.LogError(
-                    $"{nameof(PlayerRespawnController)} on '{name}' requires a ScreenFadeUI reference.",
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires ScreenFadeUI.",
                     this
                 );
 
-                valid =
-                    false;
+                valid = false;
             }
 
             return valid;

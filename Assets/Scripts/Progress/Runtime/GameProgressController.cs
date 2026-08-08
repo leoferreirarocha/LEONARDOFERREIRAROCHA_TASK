@@ -10,13 +10,13 @@ namespace LeonardoTask.Progress
     /// This component stores only progression that affects the world.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class GameProgressController :
-        MonoBehaviour
+    public sealed class GameProgressController : MonoBehaviour
     {
         private bool frogShopReached;
         private bool shortcutUnlocked;
         private bool frogAwake;
         private bool wandReceived;
+        private bool enemyCheckpointReached;
         private bool enemyDefeated;
         private bool castleDoorOpened;
 
@@ -24,6 +24,15 @@ namespace LeonardoTask.Progress
         /// Raised whenever persistent world progression changes.
         /// </summary>
         public event Action Changed;
+
+        /// <summary>
+        /// Raised specifically after progression has been restored
+        /// from persistent save data.
+        ///
+        /// Systems that need to reposition or rebuild themselves
+        /// immediately after loading can listen to this event.
+        /// </summary>
+        public event Action StateRestored;
 
         public bool FrogShopReached =>
             frogShopReached;
@@ -37,6 +46,9 @@ namespace LeonardoTask.Progress
         public bool WandReceived =>
             wandReceived;
 
+        public bool EnemyCheckpointReached =>
+            enemyCheckpointReached;
+
         public bool EnemyDefeated =>
             enemyDefeated;
 
@@ -45,9 +57,6 @@ namespace LeonardoTask.Progress
 
         /// <summary>
         /// Records the player's first successful arrival at the Frog Shop.
-        ///
-        /// Reaching the shop does not unlock the shortcut by itself.
-        /// The shortcut is unlocked only after activating the shop lever.
         /// </summary>
         public void ReachFrogShop()
         {
@@ -60,11 +69,9 @@ namespace LeonardoTask.Progress
 
             Changed?.Invoke();
         }
+
         /// <summary>
         /// Records the permanent activation of the Frog Shop lever.
-        ///
-        /// Activating the lever also guarantees that the shop has been reached
-        /// and permanently unlocks the shortcut.
         /// </summary>
         public void ActivateFrogShopLever()
         {
@@ -87,8 +94,9 @@ namespace LeonardoTask.Progress
                 Changed?.Invoke();
             }
         }
+
         /// <summary>
-        /// Records that the Frog has been awakened.
+        /// Records that the Frog has been permanently awakened.
         /// </summary>
         public void MarkFrogAwake()
         {
@@ -118,18 +126,47 @@ namespace LeonardoTask.Progress
         }
 
         /// <summary>
-        /// Records that the ranged enemy has been defeated.
+        /// Records that the player has reached the checkpoint
+        /// immediately before the enemy encounter.
         /// </summary>
-        public void MarkEnemyDefeated()
+        public void MarkEnemyCheckpointReached()
         {
-            if (enemyDefeated)
+            if (enemyCheckpointReached)
             {
                 return;
             }
 
-            enemyDefeated = true;
+            enemyCheckpointReached = true;
 
             Changed?.Invoke();
+        }
+
+        /// <summary>
+        /// Records that the ranged enemy has been permanently defeated.
+        ///
+        /// Defeating the enemy also guarantees that the encounter
+        /// checkpoint has logically been reached.
+        /// </summary>
+        public void MarkEnemyDefeated()
+        {
+            bool changed = false;
+
+            if (!enemyCheckpointReached)
+            {
+                enemyCheckpointReached = true;
+                changed = true;
+            }
+
+            if (!enemyDefeated)
+            {
+                enemyDefeated = true;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                Changed?.Invoke();
+            }
         }
 
         /// <summary>
@@ -149,15 +186,13 @@ namespace LeonardoTask.Progress
 
         /// <summary>
         /// Restores the complete persistent world progression state.
-        ///
-        /// Listeners are notified only after the complete state has
-        /// been restored.
         /// </summary>
         public void RestoreState(
             bool savedFrogShopReached,
             bool savedShortcutUnlocked,
             bool savedFrogAwake,
             bool savedWandReceived,
+            bool savedEnemyCheckpointReached,
             bool savedEnemyDefeated,
             bool savedCastleDoorOpened
         )
@@ -174,6 +209,13 @@ namespace LeonardoTask.Progress
             wandReceived =
                 savedWandReceived;
 
+            // Older saves do not contain the checkpoint field.
+            // If the enemy was already defeated, the player must
+            // necessarily have progressed beyond this checkpoint.
+            enemyCheckpointReached =
+                savedEnemyCheckpointReached ||
+                savedEnemyDefeated;
+
             enemyDefeated =
                 savedEnemyDefeated;
 
@@ -181,6 +223,7 @@ namespace LeonardoTask.Progress
                 savedCastleDoorOpened;
 
             Changed?.Invoke();
+            StateRestored?.Invoke();
         }
     }
 }

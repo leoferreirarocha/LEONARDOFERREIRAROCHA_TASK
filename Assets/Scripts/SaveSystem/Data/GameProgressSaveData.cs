@@ -12,6 +12,7 @@ namespace LeonardoTask.SaveSystem
         public bool shortcutUnlocked;
         public bool frogAwake;
         public bool wandReceived;
+        public bool enemyCheckpointReached;
         public bool enemyDefeated;
         public bool castleDoorOpened;
     }

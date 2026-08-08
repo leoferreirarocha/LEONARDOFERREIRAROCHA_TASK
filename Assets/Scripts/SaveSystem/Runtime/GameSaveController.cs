@@ -341,26 +341,29 @@ namespace LeonardoTask.SaveSystem
                     ? string.Empty
                     : inventory.HandItem.Id;
             saveData.progress =
-            new GameProgressSaveData
-            {
-                frogShopReached =
-                    progress.FrogShopReached,
+                new GameProgressSaveData
+                {
+                    frogShopReached =
+                        progress.FrogShopReached,
 
-                shortcutUnlocked =
-                    progress.ShortcutUnlocked,
+                    shortcutUnlocked =
+                        progress.ShortcutUnlocked,
 
-                frogAwake =
-                    progress.FrogAwake,
+                    frogAwake =
+                        progress.FrogAwake,
 
-                wandReceived =
-                    progress.WandReceived,
+                    wandReceived =
+                        progress.WandReceived,
 
-                enemyDefeated =
-                    progress.EnemyDefeated,
+                    enemyCheckpointReached =
+                        progress.EnemyCheckpointReached,
 
-                castleDoorOpened =
-                    progress.CastleDoorOpened
-            };
+                    enemyDefeated =
+                        progress.EnemyDefeated,
+
+                    castleDoorOpened =
+                        progress.CastleDoorOpened
+                };
             return saveData;
         }
 
@@ -457,6 +460,7 @@ namespace LeonardoTask.SaveSystem
                 progressData.shortcutUnlocked,
                 progressData.frogAwake,
                 progressData.wandReceived,
+                progressData.enemyCheckpointReached,
                 progressData.enemyDefeated,
                 progressData.castleDoorOpened
             );
