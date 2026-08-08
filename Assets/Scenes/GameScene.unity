@@ -4224,6 +4224,7 @@ GameObject:
   - component: {fileID: 612847481}
   - component: {fileID: 612847483}
   - component: {fileID: 612847484}
+  - component: {fileID: 612847485}
   m_Layer: 6
   m_Name: Enemy
   m_TagString: Untagged
@@ -4391,6 +4392,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69529532799be474e921deade6fd6d8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Respawn.DeathZone2D
+--- !u!114 &612847485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 612847478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 544a31338baaec84492a4889b8bfada5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Combat.EnemyRangedAttack2D
+  health: {fileID: 612847481}
+  projectilePrefab: {fileID: 5473839896463164206, guid: e757c885dbb0dc34b99f086a6f1bbc4f, type: 3}
+  firePoint: {fileID: 993006331}
+  shotsPerBurst: 3
+  initialShotDelay: 0.35
+  shotInterval: 0.18
+  burstDelay: 1.1
+  targetAimOffset: {x: 0, y: 0.1}
 --- !u!1 &617428335
 GameObject:
   m_ObjectHideFlags: 0
@@ -24086,6 +24107,7 @@ GameObject:
   m_Component:
   - component: {fileID: 652749158}
   - component: {fileID: 652749159}
+  - component: {fileID: 652749160}
   m_Layer: 6
   m_Name: VisionZone
   m_TagString: Untagged
@@ -24154,6 +24176,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &652749160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652749157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8092ef12a3838a74cb4795f84422f216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Combat.EnemyVisionTrigger2D
+  attack: {fileID: 612847485}
 --- !u!1 &654409894
 GameObject:
   m_ObjectHideFlags: 0
