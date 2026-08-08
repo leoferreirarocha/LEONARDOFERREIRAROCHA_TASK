@@ -16,7 +16,7 @@ namespace LeonardoTask.SaveSystem
         /// <summary>
         /// Current version of the save data format.
         /// </summary>
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         /// <summary>
         /// Version used when this save file was created.
@@ -33,5 +33,10 @@ namespace LeonardoTask.SaveSystem
         /// An empty string represents an empty hand.
         /// </summary>
         public string handItemId = string.Empty;
+        /// <summary>
+        /// Persistent world progression independent from inventory ownership.
+        /// </summary>
+        public GameProgressSaveData progress =
+            new GameProgressSaveData();
     }
 }

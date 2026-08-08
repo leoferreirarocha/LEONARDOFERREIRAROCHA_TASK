@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using LeonardoTask.Inventory;
+using LeonardoTask.Progress;
 using UnityEngine;
 
 namespace LeonardoTask.SaveSystem
@@ -28,6 +29,12 @@ namespace LeonardoTask.SaveSystem
         )]
         [SerializeField]
         private ItemDatabase itemDatabase;
+
+        [Tooltip(
+            "Persistent world progression that will be saved alongside the inventory."
+        )]
+        [SerializeField]
+        private GameProgressController progress;
 
         [Header("Save Configuration")]
 
@@ -80,6 +87,9 @@ namespace LeonardoTask.SaveSystem
             inventory.EquipmentChanged +=
                 HandleRuntimeStateChanged;
 
+            progress.Changed +=
+                HandleRuntimeStateChanged;
+
             isReady = true;
         }
 
@@ -100,16 +110,20 @@ namespace LeonardoTask.SaveSystem
 
         private void OnDestroy()
         {
-            if (inventory == null)
+            if (inventory != null)
             {
-                return;
+                inventory.InventoryChanged -=
+                    HandleRuntimeStateChanged;
+
+                inventory.EquipmentChanged -=
+                    HandleRuntimeStateChanged;
             }
 
-            inventory.InventoryChanged -=
-                HandleRuntimeStateChanged;
-
-            inventory.EquipmentChanged -=
-                HandleRuntimeStateChanged;
+            if (progress != null)
+            {
+                progress.Changed -=
+                    HandleRuntimeStateChanged;
+            }
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -326,7 +340,27 @@ namespace LeonardoTask.SaveSystem
                 inventory.HandItem == null
                     ? string.Empty
                     : inventory.HandItem.Id;
+            saveData.progress =
+            new GameProgressSaveData
+            {
+                frogShopReached =
+                    progress.FrogShopReached,
 
+                shortcutUnlocked =
+                    progress.ShortcutUnlocked,
+
+                frogAwake =
+                    progress.FrogAwake,
+
+                wandReceived =
+                    progress.WandReceived,
+
+                enemyDefeated =
+                    progress.EnemyDefeated,
+
+                castleDoorOpened =
+                    progress.CastleDoorOpened
+            };
             return saveData;
         }
 
@@ -414,6 +448,18 @@ namespace LeonardoTask.SaveSystem
                 pocketQuantities,
                 handItem
             );
+            GameProgressSaveData progressData =
+                saveData.progress ??
+                new GameProgressSaveData();
+
+            progress.RestoreState(
+                progressData.frogShopReached,
+                progressData.shortcutUnlocked,
+                progressData.frogAwake,
+                progressData.wandReceived,
+                progressData.enemyDefeated,
+                progressData.castleDoorOpened
+            );
         }
 
         /// <summary>
@@ -495,6 +541,15 @@ namespace LeonardoTask.SaveSystem
             {
                 Debug.LogError(
                     $"{nameof(GameSaveController)} on '{name}' requires a valid save file name.",
+                    this
+                );
+
+                valid = false;
+            }
+            if (progress == null)
+            {
+                Debug.LogError(
+                    $"{nameof(GameSaveController)} on '{name}' requires a GameProgressController reference.",
                     this
                 );
 
