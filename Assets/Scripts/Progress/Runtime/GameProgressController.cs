@@ -44,24 +44,49 @@ namespace LeonardoTask.Progress
             castleDoorOpened;
 
         /// <summary>
-        /// Records the player's first arrival at the Frog Shop.
+        /// Records the player's first successful arrival at the Frog Shop.
         ///
-        /// Reaching the shop also permanently unlocks its shortcut.
+        /// Reaching the shop does not unlock the shortcut by itself.
+        /// The shortcut is unlocked only after activating the shop lever.
         /// </summary>
         public void ReachFrogShop()
         {
-            if (frogShopReached &&
-                shortcutUnlocked)
+            if (frogShopReached)
             {
                 return;
             }
 
             frogShopReached = true;
-            shortcutUnlocked = true;
 
             Changed?.Invoke();
         }
+        /// <summary>
+        /// Records the permanent activation of the Frog Shop lever.
+        ///
+        /// Activating the lever also guarantees that the shop has been reached
+        /// and permanently unlocks the shortcut.
+        /// </summary>
+        public void ActivateFrogShopLever()
+        {
+            bool changed = false;
 
+            if (!frogShopReached)
+            {
+                frogShopReached = true;
+                changed = true;
+            }
+
+            if (!shortcutUnlocked)
+            {
+                shortcutUnlocked = true;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                Changed?.Invoke();
+            }
+        }
         /// <summary>
         /// Records that the Frog has been awakened.
         /// </summary>

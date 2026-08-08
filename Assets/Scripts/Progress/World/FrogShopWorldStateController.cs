@@ -103,7 +103,7 @@ namespace LeonardoTask.Progress
                 inventory.IsEquipped(trumpetItem);
 
             bool trumpetShouldBeAvailable =
-                progress.FrogShopReached &&
+                progress.ShortcutUnlocked &&
                 !ownsTrumpet;
 
             if (trumpetPickup != null)

@@ -6,8 +6,8 @@ namespace LeonardoTask.Progress
     /// <summary>
     /// Records the player's first successful arrival at the Frog Shop.
     ///
-    /// The trigger permanently unlocks the shop shortcut and enables
-    /// the next progression step.
+    /// This trigger tracks progression only. The shortcut remains locked
+    /// until the player explicitly activates the Frog Shop lever.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Collider2D))]
