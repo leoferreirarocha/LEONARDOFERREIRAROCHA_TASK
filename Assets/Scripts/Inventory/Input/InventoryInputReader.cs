@@ -7,70 +7,63 @@ namespace LeonardoTask.Inventory
     /// <summary>
     /// Centralizes inventory-specific input through the Unity Input System.
     ///
-    /// This component translates quick-slot Input Actions into zero-based
-    /// pocket slot indices without containing inventory or UI logic.
+    /// This component translates quick-slot Input Actions into inventory
+    /// selection events without containing inventory or UI behavior.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class InventoryInputReader : MonoBehaviour
     {
-        [Header("Quick Slot Actions")]
+        [Header("Pocket Slot Actions")]
 
-        [Tooltip("Input Actions associated with pocket slots 1 through 6.")]
+        [Tooltip(
+            "Input Actions associated with pocket slots 1 through 6."
+        )]
         [SerializeField]
         private InputActionReference[] quickSlotActions;
 
+        [Header("Hand Slot Action")]
+
+        [Tooltip(
+            "Input Action used to select the active Hand slot."
+        )]
+        [SerializeField]
+        private InputActionReference handSlotAction;
+
+        private bool[] quickSlotActionsEnabledByThisComponent;
+        private bool handSlotActionEnabledByThisComponent;
+
         /// <summary>
-        /// Raised when a quick-slot action is pressed.
+        /// Raised when a pocket quick-slot action is performed.
         ///
-        /// The provided value is a zero-based pocket index:
+        /// The provided index is zero-based:
         /// key 1 produces index 0, key 2 produces index 1, and so on.
         /// </summary>
         public event Action<int> QuickSlotPressed;
 
-        private bool[] actionsEnabledByThisComponent;
+        /// <summary>
+        /// Raised when the Hand selection action is performed.
+        /// </summary>
+        public event Action HandSlotPressed;
 
         private void Awake()
         {
-            actionsEnabledByThisComponent =
+            quickSlotActionsEnabledByThisComponent =
                 new bool[quickSlotActions?.Length ?? 0];
         }
 
         private void OnEnable()
         {
-            if (quickSlotActions == null)
-            {
-                return;
-            }
-
-            for (int i = 0;
-                 i < quickSlotActions.Length;
-                 i++)
-            {
-                InputActionReference actionReference =
-                    quickSlotActions[i];
-
-                if (!HasValidAction(actionReference))
-                {
-                    continue;
-                }
-
-                InputAction action =
-                    actionReference.action;
-
-                action.performed +=
-                    HandleQuickSlotPerformed;
-
-                if (!action.enabled)
-                {
-                    action.Enable();
-
-                    actionsEnabledByThisComponent[i] =
-                        true;
-                }
-            }
+            EnableQuickSlotActions();
+            EnableHandSlotAction();
         }
 
         private void OnDisable()
+        {
+            DisableQuickSlotActions();
+            DisableHandSlotAction();
+        }
+
+        private void EnableQuickSlotActions()
         {
             if (quickSlotActions == null)
             {
@@ -89,27 +82,99 @@ namespace LeonardoTask.Inventory
                     continue;
                 }
 
-                InputAction action =
-                    actionReference.action;
-
-                action.performed -=
+                actionReference.action.performed +=
                     HandleQuickSlotPerformed;
 
-                if (i < actionsEnabledByThisComponent.Length &&
-                    actionsEnabledByThisComponent[i])
+                if (actionReference.action.enabled)
                 {
-                    action.Disable();
-
-                    actionsEnabledByThisComponent[i] =
-                        false;
+                    continue;
                 }
+
+                actionReference.action.Enable();
+
+                quickSlotActionsEnabledByThisComponent[i] =
+                    true;
             }
         }
 
-        /// <summary>
-        /// Converts the performed Input Action back into its corresponding
-        /// pocket slot index.
-        /// </summary>
+        private void DisableQuickSlotActions()
+        {
+            if (quickSlotActions == null)
+            {
+                return;
+            }
+
+            for (int i = 0;
+                 i < quickSlotActions.Length;
+                 i++)
+            {
+                InputActionReference actionReference =
+                    quickSlotActions[i];
+
+                if (!HasValidAction(actionReference))
+                {
+                    continue;
+                }
+
+                actionReference.action.performed -=
+                    HandleQuickSlotPerformed;
+
+                if (i >=
+                        quickSlotActionsEnabledByThisComponent.Length ||
+                    !quickSlotActionsEnabledByThisComponent[i])
+                {
+                    continue;
+                }
+
+                actionReference.action.Disable();
+
+                quickSlotActionsEnabledByThisComponent[i] =
+                    false;
+            }
+        }
+
+        private void EnableHandSlotAction()
+        {
+            if (!HasValidAction(handSlotAction))
+            {
+                return;
+            }
+
+            handSlotAction.action.performed +=
+                HandleHandSlotPerformed;
+
+            if (handSlotAction.action.enabled)
+            {
+                return;
+            }
+
+            handSlotAction.action.Enable();
+
+            handSlotActionEnabledByThisComponent =
+                true;
+        }
+
+        private void DisableHandSlotAction()
+        {
+            if (!HasValidAction(handSlotAction))
+            {
+                return;
+            }
+
+            handSlotAction.action.performed -=
+                HandleHandSlotPerformed;
+
+            if (!handSlotActionEnabledByThisComponent)
+            {
+                return;
+            }
+
+            handSlotAction.action.Disable();
+
+            handSlotActionEnabledByThisComponent =
+                false;
+        }
+
         private void HandleQuickSlotPerformed(
             InputAction.CallbackContext context
         )
@@ -138,6 +203,13 @@ namespace LeonardoTask.Inventory
             }
         }
 
+        private void HandleHandSlotPerformed(
+            InputAction.CallbackContext context
+        )
+        {
+            HandSlotPressed?.Invoke();
+        }
+
         private static bool HasValidAction(
             InputActionReference actionReference
         )
@@ -156,7 +228,7 @@ namespace LeonardoTask.Inventory
             if (quickSlotActions.Length != 6)
             {
                 Debug.LogWarning(
-                    $"{nameof(InventoryInputReader)} expects exactly six quick-slot actions.",
+                    $"{nameof(InventoryInputReader)} expects exactly six pocket quick-slot actions.",
                     this
                 );
             }

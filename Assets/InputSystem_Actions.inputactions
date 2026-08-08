@@ -956,6 +956,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "SelectHand",
+                    "type": "Button",
+                    "id": "52e128d0-9142-45a0-a954-1a5966306d9d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1022,6 +1031,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SelectSlot6",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0d485d12-f8a7-4883-87de-4e25ce3d5545",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectHand",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

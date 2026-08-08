@@ -63,26 +63,20 @@ namespace LeonardoTask.Inventory.UI
         /// <summary>
         /// Selects the pocket slot associated with a keyboard quick-slot input.
         /// </summary>
+        /// <summary>
+        /// Selects the pocket slot associated with a keyboard shortcut.
+        ///
+        /// Empty pockets can still be selected so the player always receives
+        /// immediate visual feedback from the requested quick slot.
+        /// </summary>
         private void HandleQuickSlotPressed(
             int pocketIndex
         )
         {
             if (pocketIndex < 0 ||
-                pocketIndex >= inventory.PocketSlotCount)
+                pocketIndex >=
+                    inventory.PocketSlotCount)
             {
-                return;
-            }
-
-            InventorySlot slot =
-                inventory.GetPocketSlot(
-                    pocketIndex
-                );
-
-            // Empty slots clear the current selection instead of
-            // displaying stale details from a previously selected item.
-            if (slot.IsEmpty)
-            {
-                ClearSelection();
                 return;
             }
 
@@ -91,6 +85,19 @@ namespace LeonardoTask.Inventory.UI
 
             selectedPocketIndex =
                 pocketIndex;
+
+            RefreshAll();
+        }
+        /// <summary>
+        /// Selects the active Hand slot through its keyboard shortcut.
+        /// </summary>
+        private void HandleHandSlotPressed()
+        {
+            selectionType =
+                SelectionType.Hand;
+
+            selectedPocketIndex =
+                -1;
 
             RefreshAll();
         }
@@ -110,6 +117,9 @@ namespace LeonardoTask.Inventory.UI
             {
                 input.QuickSlotPressed +=
                     HandleQuickSlotPressed;
+
+                input.HandSlotPressed +=
+                    HandleHandSlotPressed;
             }
         }
 
@@ -134,11 +144,18 @@ namespace LeonardoTask.Inventory.UI
             {
                 input.QuickSlotPressed -=
                     HandleQuickSlotPressed;
+
+                input.HandSlotPressed -=
+                    HandleHandSlotPressed;
             }
         }
 
         /// <summary>
-        /// Selects an inventory slot and updates the details panel.
+        /// Selects an inventory slot regardless of whether it currently
+        /// contains an item.
+        ///
+        /// Selection represents the UI location currently focused by the player,
+        /// while item details depend independently on the slot contents.
         /// </summary>
         public void SelectSlot(
             InventorySlotView slotView
@@ -152,14 +169,10 @@ namespace LeonardoTask.Inventory.UI
             if (slotView.Type ==
                 InventorySlotView.SlotType.Pocket)
             {
-                InventorySlot slot =
-                    inventory.GetPocketSlot(
-                        slotView.PocketIndex
-                    );
-
-                if (slot.IsEmpty)
+                if (slotView.PocketIndex < 0 ||
+                    slotView.PocketIndex >=
+                        inventory.PocketSlotCount)
                 {
-                    ClearSelection();
                     return;
                 }
 
@@ -171,12 +184,6 @@ namespace LeonardoTask.Inventory.UI
             }
             else
             {
-                if (inventory.HandItem == null)
-                {
-                    ClearSelection();
-                    return;
-                }
-
                 selectionType =
                     SelectionType.Hand;
 
@@ -475,9 +482,11 @@ namespace LeonardoTask.Inventory.UI
                     selectedPocketIndex
                 );
 
+            // An empty slot remains visually selected,
+            // but there is no item information to display.
             if (slot.IsEmpty)
             {
-                ClearSelection();
+                detailsView.Clear();
                 return;
             }
 
@@ -495,8 +504,8 @@ namespace LeonardoTask.Inventory.UI
                 return;
             }
 
-            // Key items are inspected in the inventory but used
-            // contextually by world interactions.
+            // Non-equippable items can still be inspected,
+            // but they do not expose an equipment action.
             detailsView.Show(
                 item,
                 string.Empty,
@@ -509,9 +518,10 @@ namespace LeonardoTask.Inventory.UI
             ItemDefinition item =
                 inventory.HandItem;
 
+            // The Hand remains selectable even while empty.
             if (item == null)
             {
-                ClearSelection();
+                detailsView.Clear();
                 return;
             }
 
@@ -559,7 +569,10 @@ namespace LeonardoTask.Inventory.UI
                 return;
             }
 
-            ClearSelection();
+            // Keep the Hand selected after unequipping.
+            // This provides continuous feedback about the location
+            // the player just interacted with.
+            RefreshAll();
         }
 
         private ItemDefinition GetItemFromView(
