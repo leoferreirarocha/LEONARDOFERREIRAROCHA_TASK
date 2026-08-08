@@ -5,14 +5,19 @@ using UnityEngine;
 namespace LeonardoTask.Combat
 {
     /// <summary>
-    /// Registers players entering the enemy's rectangular forward
-    /// vision area without requiring continuous physics queries.
+    /// Detects players entering or leaving the enemy's rectangular
+    /// forward vision area.
+    ///
+    /// Detection is driven entirely through Collider2D trigger events
+    /// and therefore requires no continuous physics queries.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(BoxCollider2D))]
     public sealed class EnemyVisionTrigger2D :
         MonoBehaviour
     {
+        [Header("References")]
+
         [SerializeField]
         private EnemyRangedAttack2D attack;
 
@@ -111,12 +116,14 @@ namespace LeonardoTask.Combat
                 in overlapCounts.Keys
             )
             {
-                if (player != null)
+                if (player == null)
                 {
-                    attack?.ClearTarget(
-                        player.transform
-                    );
+                    continue;
                 }
+
+                attack?.ClearTarget(
+                    player.transform
+                );
             }
 
             overlapCounts.Clear();

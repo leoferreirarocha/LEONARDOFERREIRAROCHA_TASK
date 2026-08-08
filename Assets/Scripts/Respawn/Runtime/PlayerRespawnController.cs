@@ -3,6 +3,7 @@ using LeonardoTask.CameraSystem;
 using LeonardoTask.Interaction;
 using LeonardoTask.Player;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace LeonardoTask.Respawn
 {
@@ -35,8 +36,9 @@ namespace LeonardoTask.Respawn
 
         [Header("Respawn")]
 
+        [FormerlySerializedAs("respawnPoint")]
         [SerializeField]
-        private Transform respawnPoint;
+        private Transform initialRespawnPoint;
 
         [SerializeField]
         private PlayerCameraFollow2D cameraFollow;
@@ -48,41 +50,31 @@ namespace LeonardoTask.Respawn
 
         [Header("Death Presentation")]
 
-        [Tooltip(
-            "Additional local Z rotation applied to the visual while dead."
-        )]
         [SerializeField]
         private float deathVisualRotationZ = 90f;
 
-        [Tooltip(
-            "Time required for the screen to become fully black."
-        )]
         [SerializeField, Min(0f)]
-        private float fadeToBlackDuration = 0.35f;
+        private float fadeToBlackDuration = 0.3f;
 
-        [Tooltip(
-            "Time spent on a fully black screen before fading back."
-        )]
         [SerializeField, Min(0f)]
         private float blackScreenHoldDuration = 0.15f;
 
-        [Tooltip(
-            "Time required for the screen to return from black."
-        )]
         [SerializeField, Min(0f)]
-        private float fadeFromBlackDuration = 0.35f;
+        private float fadeFromBlackDuration = 0.3f;
 
         private Rigidbody2D body;
+
+        private Transform currentRespawnPoint;
 
         private Quaternion initialVisualLocalRotation;
 
         private bool isDead;
 
-        /// <summary>
-        /// Gets whether a death and respawn sequence is currently active.
-        /// </summary>
         public bool IsDead =>
             isDead;
+
+        public Transform CurrentRespawnPoint =>
+            currentRespawnPoint;
 
         private void Awake()
         {
@@ -101,6 +93,9 @@ namespace LeonardoTask.Respawn
                     GetComponent<PlayerInteractor2D>();
             }
 
+            currentRespawnPoint =
+                initialRespawnPoint;
+
             if (visualRoot != null)
             {
                 initialVisualLocalRotation =
@@ -109,15 +104,13 @@ namespace LeonardoTask.Respawn
 
             if (!ValidateReferences())
             {
-                enabled = false;
+                enabled =
+                    false;
             }
         }
 
         /// <summary>
         /// Starts the player death sequence.
-        ///
-        /// Repeated death requests are ignored until the current
-        /// respawn sequence has completely finished.
         /// </summary>
         public void Kill()
         {
@@ -132,9 +125,26 @@ namespace LeonardoTask.Respawn
             );
         }
 
+        /// <summary>
+        /// Changes the position used by future deaths in the current session.
+        /// </summary>
+        public void SetRespawnPoint(
+            Transform newRespawnPoint
+        )
+        {
+            if (newRespawnPoint == null)
+            {
+                return;
+            }
+
+            currentRespawnPoint =
+                newRespawnPoint;
+        }
+
         private IEnumerator DeathSequence()
         {
-            isDead = true;
+            isDead =
+                true;
 
             LockPlayer();
 
@@ -149,12 +159,13 @@ namespace LeonardoTask.Respawn
 
             if (blackScreenHoldDuration > 0f)
             {
-                yield return new WaitForSecondsRealtime(
-                    blackScreenHoldDuration
-                );
+                yield return
+                    new WaitForSecondsRealtime(
+                        blackScreenHoldDuration
+                    );
             }
 
-            RespawnAtHome();
+            Respawn();
 
             yield return StartCoroutine(
                 screenFade.FadeTo(
@@ -165,13 +176,10 @@ namespace LeonardoTask.Respawn
 
             ReleasePlayer();
 
-            isDead = false;
+            isDead =
+                false;
         }
 
-        /// <summary>
-        /// Prevents movement and world interaction while the
-        /// death sequence is active.
-        /// </summary>
         private void LockPlayer()
         {
             movement.SetMovementEnabled(
@@ -189,10 +197,6 @@ namespace LeonardoTask.Respawn
                 0f;
         }
 
-        /// <summary>
-        /// Applies the lightweight visual death pose without rotating
-        /// the Rigidbody2D or player collision geometry.
-        /// </summary>
         private void ApplyDeathVisual()
         {
             visualRoot.localRotation =
@@ -204,11 +208,7 @@ namespace LeonardoTask.Respawn
                 );
         }
 
-        /// <summary>
-        /// Restores the player to the configured home spawn while the
-        /// screen is fully black.
-        /// </summary>
-        private void RespawnAtHome()
+        private void Respawn()
         {
             interactor.ClearNearbyInteractables();
 
@@ -218,8 +218,13 @@ namespace LeonardoTask.Respawn
             body.angularVelocity =
                 0f;
 
+            Transform targetPoint =
+                currentRespawnPoint != null
+                    ? currentRespawnPoint
+                    : initialRespawnPoint;
+
             body.position =
-                respawnPoint.position;
+                targetPoint.position;
 
             visualRoot.localRotation =
                 initialVisualLocalRotation;
@@ -227,9 +232,6 @@ namespace LeonardoTask.Respawn
             cameraFollow.SnapToTarget();
         }
 
-        /// <summary>
-        /// Restores player control after the fade has completely cleared.
-        /// </summary>
         private void ReleasePlayer()
         {
             body.linearVelocity =
@@ -246,7 +248,8 @@ namespace LeonardoTask.Respawn
 
         private bool ValidateReferences()
         {
-            bool valid = true;
+            bool valid =
+                true;
 
             if (movement == null)
             {
@@ -255,7 +258,8 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid = false;
+                valid =
+                    false;
             }
 
             if (interactor == null)
@@ -265,7 +269,8 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid = false;
+                valid =
+                    false;
             }
 
             if (visualRoot == null)
@@ -275,17 +280,19 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid = false;
+                valid =
+                    false;
             }
 
-            if (respawnPoint == null)
+            if (initialRespawnPoint == null)
             {
                 Debug.LogError(
-                    $"{nameof(PlayerRespawnController)} on '{name}' requires a respawn point.",
+                    $"{nameof(PlayerRespawnController)} on '{name}' requires an initial respawn point.",
                     this
                 );
 
-                valid = false;
+                valid =
+                    false;
             }
 
             if (cameraFollow == null)
@@ -295,7 +302,8 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid = false;
+                valid =
+                    false;
             }
 
             if (screenFade == null)
@@ -305,31 +313,11 @@ namespace LeonardoTask.Respawn
                     this
                 );
 
-                valid = false;
+                valid =
+                    false;
             }
 
             return valid;
-        }
-
-        private void OnValidate()
-        {
-            fadeToBlackDuration =
-                Mathf.Max(
-                    0f,
-                    fadeToBlackDuration
-                );
-
-            blackScreenHoldDuration =
-                Mathf.Max(
-                    0f,
-                    blackScreenHoldDuration
-                );
-
-            fadeFromBlackDuration =
-                Mathf.Max(
-                    0f,
-                    fadeFromBlackDuration
-                );
         }
     }
 }
