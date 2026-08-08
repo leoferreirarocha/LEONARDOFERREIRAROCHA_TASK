@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using LeonardoTask.Inventory;
+using LeonardoTask.Player;
 using UnityEngine;
 
 namespace LeonardoTask.Items
@@ -8,9 +9,9 @@ namespace LeonardoTask.Items
     /// Resolves gameplay behavior for the item currently equipped
     /// in the player's Hand slot.
     ///
-    /// Item-specific behaviors are discovered automatically from
-    /// child objects, allowing new equipped-item behaviors to be
-    /// added without modifying this controller.
+    /// The controller supports both momentary and continuous item use.
+    /// Continuous use is automatically ended when the Interact input
+    /// is released or when the equipped item changes.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class EquippedItemUseController :
@@ -21,17 +22,55 @@ namespace LeonardoTask.Items
         [SerializeField]
         private InventoryController inventory;
 
+        [SerializeField]
+        private PlayerInputReader input;
+
         private readonly Dictionary
             <ItemDefinition, EquippedItemUseBehaviour>
             behavioursByItem = new();
+
+        private EquippedItemUseBehaviour
+            activeBehaviour;
 
         private void Awake()
         {
             BuildBehaviourLookup();
         }
 
+        private void OnEnable()
+        {
+            if (input != null)
+            {
+                input.InteractReleased +=
+                    HandleInteractReleased;
+            }
+
+            if (inventory != null)
+            {
+                inventory.EquipmentChanged +=
+                    HandleEquipmentChanged;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (input != null)
+            {
+                input.InteractReleased -=
+                    HandleInteractReleased;
+            }
+
+            if (inventory != null)
+            {
+                inventory.EquipmentChanged -=
+                    HandleEquipmentChanged;
+            }
+
+            EndActiveUse();
+        }
+
         /// <summary>
-        /// Attempts to use whichever item is currently equipped
+        /// Attempts to begin using whichever item is currently equipped
         /// in the player's Hand.
         /// </summary>
         public bool TryUseEquippedItem()
@@ -48,11 +87,11 @@ namespace LeonardoTask.Items
         }
 
         /// <summary>
-        /// Attempts to use the equipped item only when it matches
+        /// Attempts to begin using the equipped item only when it matches
         /// the requested ItemDefinition.
         ///
-        /// Contextual interactions use this overload when a specific
-        /// equipped item is required.
+        /// Contextual interactions such as the Frog awakening sequence
+        /// use this overload when a specific equipped item is required.
         /// </summary>
         public bool TryUseEquippedItem(
             ItemDefinition expectedItem
@@ -79,12 +118,63 @@ namespace LeonardoTask.Items
                 return false;
             }
 
-            return behaviour.Use();
+            // A new use always replaces any previous active use.
+            // This prevents continuous behaviors from overlapping.
+            EndActiveUse();
+
+            bool started =
+                behaviour.BeginUse();
+
+            if (!started)
+            {
+                return false;
+            }
+
+            activeBehaviour =
+                behaviour;
+
+            return true;
         }
 
         /// <summary>
-        /// Rebuilds the runtime lookup using equipped-item behaviors
-        /// attached to this object or any of its children.
+        /// Ends any currently active equipped-item behavior.
+        /// </summary>
+        public void EndActiveUse()
+        {
+            if (activeBehaviour == null)
+            {
+                return;
+            }
+
+            activeBehaviour.EndUse();
+
+            activeBehaviour =
+                null;
+        }
+
+        private void HandleInteractReleased()
+        {
+            EndActiveUse();
+        }
+
+        private void HandleEquipmentChanged()
+        {
+            if (activeBehaviour == null)
+            {
+                return;
+            }
+
+            // Stop a continuous behavior immediately when its item
+            // is no longer the item equipped in the Hand.
+            if (inventory.HandItem !=
+                activeBehaviour.Item)
+            {
+                EndActiveUse();
+            }
+        }
+
+        /// <summary>
+        /// Builds the runtime item-to-behavior lookup from child objects.
         /// </summary>
         private void BuildBehaviourLookup()
         {
@@ -129,10 +219,10 @@ namespace LeonardoTask.Items
 
         private void OnValidate()
         {
-            if (inventory == null)
+            if (input == null)
             {
-                inventory =
-                    GetComponent<InventoryController>();
+                input =
+                    GetComponent<PlayerInputReader>();
             }
         }
     }

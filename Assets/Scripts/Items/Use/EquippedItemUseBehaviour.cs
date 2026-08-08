@@ -7,8 +7,8 @@ namespace LeonardoTask.Items
     /// Base component for gameplay behavior associated with an item
     /// while that item is equipped in the player's Hand slot.
     ///
-    /// Specific item behaviors only need to define what happens when
-    /// their corresponding item is used.
+    /// Behaviors may implement either momentary use, such as firing
+    /// a projectile, or continuous use that ends when input is released.
     /// </summary>
     public abstract class EquippedItemUseBehaviour : MonoBehaviour
     {
@@ -27,10 +27,19 @@ namespace LeonardoTask.Items
             item;
 
         /// <summary>
-        /// Performs the gameplay behavior associated with this item.
+        /// Begins using the equipped item.
         ///
         /// Returns true when the input was successfully handled.
         /// </summary>
-        public abstract bool Use();
+        public abstract bool BeginUse();
+
+        /// <summary>
+        /// Ends the current use operation.
+        ///
+        /// Momentary item behaviors do not need to override this method.
+        /// </summary>
+        public virtual void EndUse()
+        {
+        }
     }
 }

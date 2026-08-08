@@ -33,7 +33,7 @@ namespace LeonardoTask.Player
         private bool runEnabledByThisComponent;
         private bool interactEnabledByThisComponent;
 
-        private bool interactCallbackRegistered;
+        private bool interactCallbacksRegistered;
 
         /// <summary>
         /// Raised when the player performs the interaction action.
@@ -41,14 +41,15 @@ namespace LeonardoTask.Player
         public event Action InteractPressed;
 
         /// <summary>
+        /// Raised when the player releases the interaction action.
+        ///
+        /// Continuous equipped-item behaviors use this event to stop
+        /// immediately when the interaction button is released.
+        /// </summary>
+        public event Action InteractReleased;
+
+        /// <summary>
         /// Gets the current movement direction.
-        ///
-        /// Horizontal values:
-        /// -1 represents left.
-        ///  0 represents no horizontal input.
-        ///  1 represents right.
-        ///
-        /// The vertical axis remains available for future actions.
         /// </summary>
         public Vector2 Move
         {
@@ -113,12 +114,12 @@ namespace LeonardoTask.Player
                 ref interactEnabledByThisComponent
             );
 
-            RegisterInteractCallback();
+            RegisterInteractCallbacks();
         }
 
         private void OnDisable()
         {
-            UnregisterInteractCallback();
+            UnregisterInteractCallbacks();
 
             DisableActionIfOwned(
                 moveAction,
@@ -141,10 +142,10 @@ namespace LeonardoTask.Player
             );
         }
 
-        private void RegisterInteractCallback()
+        private void RegisterInteractCallbacks()
         {
             if (!HasValidAction(interactAction) ||
-                interactCallbackRegistered)
+                interactCallbacksRegistered)
             {
                 return;
             }
@@ -152,13 +153,16 @@ namespace LeonardoTask.Player
             interactAction.action.performed +=
                 HandleInteractPerformed;
 
-            interactCallbackRegistered = true;
+            interactAction.action.canceled +=
+                HandleInteractCanceled;
+
+            interactCallbacksRegistered = true;
         }
 
-        private void UnregisterInteractCallback()
+        private void UnregisterInteractCallbacks()
         {
             if (!HasValidAction(interactAction) ||
-                !interactCallbackRegistered)
+                !interactCallbacksRegistered)
             {
                 return;
             }
@@ -166,7 +170,10 @@ namespace LeonardoTask.Player
             interactAction.action.performed -=
                 HandleInteractPerformed;
 
-            interactCallbackRegistered = false;
+            interactAction.action.canceled -=
+                HandleInteractCanceled;
+
+            interactCallbacksRegistered = false;
         }
 
         private void HandleInteractPerformed(
@@ -174,6 +181,13 @@ namespace LeonardoTask.Player
         )
         {
             InteractPressed?.Invoke();
+        }
+
+        private void HandleInteractCanceled(
+            InputAction.CallbackContext context
+        )
+        {
+            InteractReleased?.Invoke();
         }
 
         private static bool HasValidAction(

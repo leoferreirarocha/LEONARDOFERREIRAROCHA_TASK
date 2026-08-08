@@ -1064,6 +1064,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LeonardoTask.Items.EquippedItemUseController
   inventory: {fileID: 836169977}
+  input: {fileID: 73065546}
 --- !u!1 &103225471
 GameObject:
   m_ObjectHideFlags: 0
@@ -103197,8 +103198,9 @@ MonoBehaviour:
   item: {fileID: 11400000, guid: 7614972daf4aed240b4cda028ce8ece7, type: 2}
   audioSource: {fileID: 1517615897}
   trumpetClip: {fileID: 8300000, guid: 3cc526a45bf9c2345bceafef1b142575, type: 3}
-  volumeScale: 1
-  onUsed:
+  loopWhileHeld: 1
+  volume: 1
+  onUseStarted:
     m_PersistentCalls:
       m_Calls: []
 --- !u!82 &1517615897
@@ -103216,7 +103218,7 @@ AudioSource:
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -103982,7 +103984,7 @@ MonoBehaviour:
     visualVariantIndex: 0
   visualSwitcher: {fileID: 1616001863}
   sleepingIdleVariantIndex: 0
-  awakeIdleVariantIndex: 2
+  awakeIdleVariantIndex: 0
 --- !u!1 &1628475946
 GameObject:
   m_ObjectHideFlags: 0
