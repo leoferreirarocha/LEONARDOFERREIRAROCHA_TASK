@@ -1,11 +1,13 @@
-using LeonardoTask.Progress;
 using UnityEngine;
 
 namespace LeonardoTask.Respawn
 {
     /// <summary>
-    /// Updates the player's active respawn point and records the
-    /// encounter checkpoint in persistent game progression.
+    /// Activates the persistent checkpoint immediately before
+    /// the enemy encounter.
+    ///
+    /// Reaching this trigger is enough to persist the checkpoint.
+    /// Enemy state has no effect on checkpoint activation.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Collider2D))]
@@ -14,11 +16,11 @@ namespace LeonardoTask.Respawn
     {
         [Header("Checkpoint")]
 
+        [Tooltip(
+            "Exact world position used for future player respawns."
+        )]
         [SerializeField]
         private Transform checkpointPoint;
-
-        [SerializeField]
-        private GameProgressController progress;
 
         private Collider2D triggerCollider;
         private bool activated;
@@ -40,8 +42,10 @@ namespace LeonardoTask.Respawn
 
         private void Start()
         {
-            if (progress != null &&
-                progress.EnemyCheckpointReached)
+            // The checkpoint has already fulfilled its purpose
+            // when it was persisted during a previous session.
+            if (PlayerRespawnController
+                .HasPersistentEnemyCheckpoint)
             {
                 activated = true;
 
@@ -70,11 +74,9 @@ namespace LeonardoTask.Respawn
 
             activated = true;
 
-            player.SetRespawnPoint(
+            player.ActivatePersistentEnemyCheckpoint(
                 checkpointPoint
             );
-
-            progress?.MarkEnemyCheckpointReached();
 
             triggerCollider.enabled =
                 false;

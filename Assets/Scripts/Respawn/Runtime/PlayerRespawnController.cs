@@ -2,7 +2,6 @@ using System.Collections;
 using LeonardoTask.CameraSystem;
 using LeonardoTask.Interaction;
 using LeonardoTask.Player;
-using LeonardoTask.Progress;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -11,12 +10,18 @@ namespace LeonardoTask.Respawn
     /// <summary>
     /// Coordinates player death, persistent checkpoint restoration,
     /// and local respawning without reloading the scene.
+    ///
+    /// Inventory and world progression remain untouched because
+    /// respawning only changes the player's physical state and position.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody2D))]
     public sealed class PlayerRespawnController :
         MonoBehaviour
     {
+        private const string EnemyCheckpointPreferenceKey =
+            "respawn.enemy-checkpoint.reached";
+
         [Header("Player References")]
 
         [SerializeField]
@@ -25,13 +30,12 @@ namespace LeonardoTask.Respawn
         [SerializeField]
         private PlayerInteractor2D interactor;
 
+        [Tooltip(
+            "Visual child rotated during the death presentation. " +
+            "Do not assign the Player root."
+        )]
         [SerializeField]
         private Transform visualRoot;
-
-        [Header("Progress")]
-
-        [SerializeField]
-        private GameProgressController progress;
 
         [Header("Respawn Points")]
 
@@ -39,6 +43,9 @@ namespace LeonardoTask.Respawn
         [SerializeField]
         private Transform initialRespawnPoint;
 
+        [Tooltip(
+            "Persistent checkpoint used before the enemy encounter."
+        )]
         [SerializeField]
         private Transform enemyCheckpointPoint;
 
@@ -72,11 +79,27 @@ namespace LeonardoTask.Respawn
 
         private bool isDead;
 
+        /// <summary>
+        /// Gets whether a death sequence is currently active.
+        /// </summary>
         public bool IsDead =>
             isDead;
 
+        /// <summary>
+        /// Gets the respawn point currently used by the player.
+        /// </summary>
         public Transform CurrentRespawnPoint =>
             currentRespawnPoint;
+
+        /// <summary>
+        /// Gets whether the enemy checkpoint was reached in
+        /// a previous or current game session.
+        /// </summary>
+        public static bool HasPersistentEnemyCheckpoint =>
+            PlayerPrefs.GetInt(
+                EnemyCheckpointPreferenceKey,
+                0
+            ) == 1;
 
         private void Awake()
         {
@@ -110,33 +133,16 @@ namespace LeonardoTask.Respawn
             }
         }
 
-        private void OnEnable()
-        {
-            if (progress != null)
-            {
-                progress.StateRestored +=
-                    HandleProgressStateRestored;
-            }
-        }
-
         private void Start()
         {
-            // This also covers cases where save restoration occurred
-            // before this component reached Start.
-            ApplyPersistentRespawnState();
-        }
-
-        private void OnDisable()
-        {
-            if (progress != null)
-            {
-                progress.StateRestored -=
-                    HandleProgressStateRestored;
-            }
+            RestorePersistentCheckpoint();
         }
 
         /// <summary>
         /// Starts the player death sequence.
+        ///
+        /// Repeated death requests are ignored until the current
+        /// respawn sequence has completely finished.
         /// </summary>
         public void Kill()
         {
@@ -152,7 +158,7 @@ namespace LeonardoTask.Respawn
         }
 
         /// <summary>
-        /// Changes the active respawn point for the current runtime session.
+        /// Changes the active respawn location for the current session.
         /// </summary>
         public void SetRespawnPoint(
             Transform newRespawnPoint
@@ -167,11 +173,42 @@ namespace LeonardoTask.Respawn
                 newRespawnPoint;
         }
 
+        /// <summary>
+        /// Activates and immediately persists the enemy checkpoint.
+        ///
+        /// This checkpoint is independent from enemy defeat.
+        /// Reaching it is enough to make it the player's future
+        /// starting and respawn location.
+        /// </summary>
+        public void ActivatePersistentEnemyCheckpoint(
+            Transform checkpointPoint
+        )
+        {
+            if (checkpointPoint == null)
+            {
+                return;
+            }
+
+            currentRespawnPoint =
+                checkpointPoint;
+
+            PlayerPrefs.SetInt(
+                EnemyCheckpointPreferenceKey,
+                1
+            );
+
+            // This checkpoint is activated only once, so forcing
+            // an immediate write here is acceptable and guarantees
+            // persistence even if the game is closed shortly afterward.
+            PlayerPrefs.Save();
+        }
+
         private IEnumerator DeathSequence()
         {
             isDead = true;
 
             LockPlayer();
+
             ApplyDeathVisual();
 
             yield return StartCoroutine(
@@ -203,21 +240,14 @@ namespace LeonardoTask.Respawn
             isDead = false;
         }
 
-        private void HandleProgressStateRestored()
-        {
-            ApplyPersistentRespawnState();
-        }
-
         /// <summary>
-        /// Reconstructs the active respawn location from persistent progress.
+        /// Restores the saved enemy checkpoint when starting the game.
         ///
-        /// Loading a save that has reached the enemy checkpoint also
-        /// places the player directly at that checkpoint.
+        /// The enemy does not need to be defeated for this to happen.
         /// </summary>
-        private void ApplyPersistentRespawnState()
+        private void RestorePersistentCheckpoint()
         {
-            if (progress == null ||
-                !progress.EnemyCheckpointReached)
+            if (!HasPersistentEnemyCheckpoint)
             {
                 currentRespawnPoint =
                     initialRespawnPoint;
@@ -227,6 +257,15 @@ namespace LeonardoTask.Respawn
 
             if (enemyCheckpointPoint == null)
             {
+                Debug.LogWarning(
+                    $"{nameof(PlayerRespawnController)} found a saved enemy checkpoint, " +
+                    "but no Enemy Checkpoint Point is assigned.",
+                    this
+                );
+
+                currentRespawnPoint =
+                    initialRespawnPoint;
+
                 return;
             }
 
@@ -279,7 +318,7 @@ namespace LeonardoTask.Respawn
         }
 
         /// <summary>
-        /// Immediately places the player at a world-space respawn point.
+        /// Immediately places the player at the requested world position.
         /// </summary>
         private void PlacePlayerAt(
             Transform targetPoint
@@ -321,6 +360,28 @@ namespace LeonardoTask.Respawn
             );
         }
 
+        /// <summary>
+        /// Development utility used to clear the persisted enemy
+        /// checkpoint without affecting inventory or game progression.
+        /// </summary>
+        [ContextMenu("Reset Saved Enemy Checkpoint")]
+        private void ResetSavedEnemyCheckpoint()
+        {
+            PlayerPrefs.DeleteKey(
+                EnemyCheckpointPreferenceKey
+            );
+
+            PlayerPrefs.Save();
+
+            currentRespawnPoint =
+                initialRespawnPoint;
+
+            Debug.Log(
+                "Saved enemy checkpoint was reset.",
+                this
+            );
+        }
+
         private bool ValidateReferences()
         {
             bool valid = true;
@@ -349,16 +410,6 @@ namespace LeonardoTask.Respawn
             {
                 Debug.LogError(
                     $"{nameof(PlayerRespawnController)} on '{name}' requires a visual root.",
-                    this
-                );
-
-                valid = false;
-            }
-
-            if (progress == null)
-            {
-                Debug.LogError(
-                    $"{nameof(PlayerRespawnController)} on '{name}' requires GameProgressController.",
                     this
                 );
 
@@ -406,6 +457,27 @@ namespace LeonardoTask.Respawn
             }
 
             return valid;
+        }
+
+        private void OnValidate()
+        {
+            fadeToBlackDuration =
+                Mathf.Max(
+                    0f,
+                    fadeToBlackDuration
+                );
+
+            blackScreenHoldDuration =
+                Mathf.Max(
+                    0f,
+                    blackScreenHoldDuration
+                );
+
+            fadeFromBlackDuration =
+                Mathf.Max(
+                    0f,
+                    fadeFromBlackDuration
+                );
         }
     }
 }
