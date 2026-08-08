@@ -208,7 +208,6 @@ namespace LeonardoTask.Progress
 
             wandReceived =
                 savedWandReceived;
-
             // Older saves do not contain the checkpoint field.
             // If the enemy was already defeated, the player must
             // necessarily have progressed beyond this checkpoint.
