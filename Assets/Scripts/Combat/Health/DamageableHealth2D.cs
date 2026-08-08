@@ -1,13 +1,15 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace LeonardoTask.Combat
 {
     /// <summary>
-    /// Provides a simple reusable health component for damageable
-    /// gameplay objects.
+    /// Provides a lightweight reusable health system for
+    /// damageable 2D gameplay objects.
     ///
-    /// Enemy behavior remains independent from health and damage rules.
+    /// Combat behavior remains independent from health ownership,
+    /// allowing enemies and future damageable objects to reuse it.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class DamageableHealth2D :
@@ -16,18 +18,18 @@ namespace LeonardoTask.Combat
         [Header("Health")]
 
         [SerializeField, Min(1)]
-        private int maximumHealth = 3;
+        private int maximumHealth = 10;
 
         [Header("Death")]
 
         [Tooltip(
-            "Automatically destroys this GameObject when health reaches zero. " +
-            "Disable this when another gameplay system owns death behavior."
+            "Automatically destroys this GameObject at zero health. " +
+            "Disable this when another gameplay system controls death."
         )]
         [SerializeField]
         private bool destroyOnDeath;
 
-        [Header("Events")]
+        [Header("Unity Events")]
 
         [SerializeField]
         private UnityEvent onDamaged;
@@ -39,42 +41,44 @@ namespace LeonardoTask.Combat
         private bool isDead;
 
         /// <summary>
-        /// Gets the object's current health.
+        /// Raised after valid damage is applied.
+        ///
+        /// Parameters contain current health followed by maximum health.
         /// </summary>
+        public event Action<int, int> Damaged;
+
+        /// <summary>
+        /// Raised once when health reaches zero.
+        /// </summary>
+        public event Action Died;
+
         public int CurrentHealth =>
             currentHealth;
 
-        /// <summary>
-        /// Gets the maximum health configured for this object.
-        /// </summary>
         public int MaximumHealth =>
             maximumHealth;
 
-        /// <summary>
-        /// Gets whether this object has already reached zero health.
-        /// </summary>
         public bool IsDead =>
             isDead;
 
         private void Awake()
         {
-            currentHealth =
-                maximumHealth;
+            ResetHealth();
         }
 
         /// <summary>
         /// Applies positive damage to this object.
         ///
-        /// Damage requests are ignored after death.
+        /// Returns true when damage was successfully applied.
         /// </summary>
-        public void TakeDamage(
+        public bool TakeDamage(
             int amount
         )
         {
             if (isDead ||
                 amount <= 0)
             {
-                return;
+                return false;
             }
 
             currentHealth =
@@ -83,12 +87,19 @@ namespace LeonardoTask.Combat
                     currentHealth - amount
                 );
 
+            Damaged?.Invoke(
+                currentHealth,
+                maximumHealth
+            );
+
             onDamaged?.Invoke();
 
             if (currentHealth <= 0)
             {
                 Die();
             }
+
+            return true;
         }
 
         /// <summary>
@@ -112,6 +123,8 @@ namespace LeonardoTask.Combat
 
             isDead =
                 true;
+
+            Died?.Invoke();
 
             onDeath?.Invoke();
 
