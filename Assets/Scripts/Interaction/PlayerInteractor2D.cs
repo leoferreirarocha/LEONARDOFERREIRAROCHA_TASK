@@ -81,6 +81,21 @@ namespace LeonardoTask.Interaction
 
             RefreshInteraction();
         }
+        /// <summary>
+        /// Clears every currently registered world interaction.
+        ///
+        /// Teleporting systems use this to prevent stale proximity references
+        /// after moving the player instantly to another world position.
+        /// </summary>
+        public void ClearNearbyInteractables()
+        {
+            nearbyInteractables.Clear();
+
+            currentInteractable =
+                null;
+
+            promptUI?.Hide();
+        }
 
         /// <summary>
         /// Enables or disables world interaction.
