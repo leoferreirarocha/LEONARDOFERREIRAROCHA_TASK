@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using LeonardoTask.Interaction.UI;
+using LeonardoTask.Items;
 using LeonardoTask.Player;
 using UnityEngine;
 
@@ -8,11 +9,16 @@ namespace LeonardoTask.Interaction
     /// <summary>
     /// Coordinates player interaction with nearby world objects.
     ///
-    /// Nearby interactions are registered by trigger events rather than
-    /// discovered through repeated physics queries.
+    /// Nearby interactions are registered through trigger events rather
+    /// than discovered with repeated physics queries.
+    ///
+    /// World interactions receive priority over equipped-item use.
+    /// When no valid world interaction exists, the same Interact input
+    /// can be forwarded to the currently equipped Hand item.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class PlayerInteractor2D : MonoBehaviour
+    public sealed class PlayerInteractor2D :
+        MonoBehaviour
     {
         [Header("References")]
 
@@ -22,13 +28,17 @@ namespace LeonardoTask.Interaction
         [SerializeField]
         private InteractionPromptUI promptUI;
 
+        [SerializeField]
+        private EquippedItemUseController
+            equippedItemUseController;
+
         private readonly List<InteractableBehaviour>
             nearbyInteractables = new();
 
-        private InteractableBehaviour currentInteractable;
+        private InteractableBehaviour
+            currentInteractable;
 
         private bool interactionEnabled = true;
-
         private bool inputCallbackRegistered;
 
         private void OnEnable()
@@ -44,14 +54,17 @@ namespace LeonardoTask.Interaction
         }
 
         /// <summary>
-        /// Registers an interaction that has entered the player's range.
+        /// Registers an interaction that has entered the player's
+        /// current proximity range.
         /// </summary>
         public void RegisterInteractable(
             InteractableBehaviour interactable
         )
         {
             if (interactable == null ||
-                nearbyInteractables.Contains(interactable))
+                nearbyInteractables.Contains(
+                    interactable
+                ))
             {
                 return;
             }
@@ -64,7 +77,8 @@ namespace LeonardoTask.Interaction
         }
 
         /// <summary>
-        /// Removes an interaction that is no longer inside the player's range.
+        /// Removes an interaction that is no longer inside
+        /// the player's proximity range.
         /// </summary>
         public void UnregisterInteractable(
             InteractableBehaviour interactable
@@ -81,11 +95,12 @@ namespace LeonardoTask.Interaction
 
             RefreshInteraction();
         }
+
         /// <summary>
         /// Clears every currently registered world interaction.
         ///
-        /// Teleporting systems use this to prevent stale proximity references
-        /// after moving the player instantly to another world position.
+        /// Teleporting systems use this to prevent stale proximity
+        /// references after moving the player instantly.
         /// </summary>
         public void ClearNearbyInteractables()
         {
@@ -100,8 +115,9 @@ namespace LeonardoTask.Interaction
         /// <summary>
         /// Enables or disables world interaction.
         ///
-        /// Disabling interaction also releases ownership of the Interact input,
-        /// allowing modal systems such as dialogue to use the same action safely.
+        /// Disabling interaction also releases ownership of the
+        /// Interact input so modal systems such as dialogue can
+        /// temporarily use the same action safely.
         /// </summary>
         public void SetInteractionEnabled(
             bool enabled
@@ -119,7 +135,8 @@ namespace LeonardoTask.Interaction
             {
                 UnregisterInputCallback();
 
-                currentInteractable = null;
+                currentInteractable =
+                    null;
 
                 promptUI?.Hide();
 
@@ -132,7 +149,7 @@ namespace LeonardoTask.Interaction
         }
 
         /// <summary>
-        /// Re-evaluates the best currently available interaction.
+        /// Re-evaluates the nearest currently valid world interaction.
         /// </summary>
         public void RefreshInteraction()
         {
@@ -140,7 +157,8 @@ namespace LeonardoTask.Interaction
 
             if (!interactionEnabled)
             {
-                currentInteractable = null;
+                currentInteractable =
+                    null;
 
                 promptUI?.Hide();
 
@@ -162,6 +180,13 @@ namespace LeonardoTask.Interaction
             );
         }
 
+        /// <summary>
+        /// Handles the shared Interact input.
+        ///
+        /// Valid nearby world interactions have priority. When no world
+        /// interaction is available, the equipped Hand item receives
+        /// an opportunity to handle the input instead.
+        /// </summary>
         private void HandleInteractPressed()
         {
             if (!interactionEnabled)
@@ -169,24 +194,56 @@ namespace LeonardoTask.Interaction
                 return;
             }
 
-            // Re-evaluate only when interaction is requested.
-            // No continuous physics query is required.
             RefreshInteraction();
 
-            if (currentInteractable == null ||
-                !currentInteractable.CanInteract)
+            if (currentInteractable != null &&
+                currentInteractable.CanInteract)
+            {
+                InteractableBehaviour interactable =
+                    currentInteractable;
+
+                interactable.Interact(
+                    this
+                );
+
+                RefreshInteraction();
+
+                return;
+            }
+
+            equippedItemUseController?.
+                TryUseEquippedItem();
+        }
+
+        private void RegisterInputCallback()
+        {
+            if (input == null ||
+                inputCallbackRegistered ||
+                !interactionEnabled)
             {
                 return;
             }
 
-            InteractableBehaviour interactable =
-                currentInteractable;
+            input.InteractPressed +=
+                HandleInteractPressed;
 
-            interactable.Interact(
-                this
-            );
+            inputCallbackRegistered =
+                true;
+        }
 
-            RefreshInteraction();
+        private void UnregisterInputCallback()
+        {
+            if (input == null ||
+                !inputCallbackRegistered)
+            {
+                return;
+            }
+
+            input.InteractPressed -=
+                HandleInteractPressed;
+
+            inputCallbackRegistered =
+                false;
         }
 
         private InteractableBehaviour
@@ -234,51 +291,35 @@ namespace LeonardoTask.Interaction
         private void RemoveInvalidInteractables()
         {
             for (
-                int i = nearbyInteractables.Count - 1;
+                int i =
+                    nearbyInteractables.Count - 1;
                 i >= 0;
                 i--
             )
             {
                 if (nearbyInteractables[i] == null)
                 {
-                    nearbyInteractables.RemoveAt(i);
+                    nearbyInteractables.RemoveAt(
+                        i
+                    );
                 }
             }
         }
-        /// <summary>
-        /// Registers the interaction input callback when world interaction
-        /// is currently enabled.
-        /// </summary>
-        private void RegisterInputCallback()
+
+        private void OnValidate()
         {
-            if (input == null ||
-                inputCallbackRegistered ||
-                !interactionEnabled)
+            if (input == null)
             {
-                return;
+                input =
+                    GetComponent<PlayerInputReader>();
             }
 
-            input.InteractPressed +=
-                HandleInteractPressed;
-
-            inputCallbackRegistered = true;
-        }
-
-        /// <summary>
-        /// Removes the world interaction input callback.
-        /// </summary>
-        private void UnregisterInputCallback()
-        {
-            if (input == null ||
-                !inputCallbackRegistered)
+            if (equippedItemUseController == null)
             {
-                return;
+                equippedItemUseController =
+                    GetComponent
+                        <EquippedItemUseController>();
             }
-
-            input.InteractPressed -=
-                HandleInteractPressed;
-
-            inputCallbackRegistered = false;
         }
     }
 }
